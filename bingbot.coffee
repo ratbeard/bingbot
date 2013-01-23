@@ -16,11 +16,13 @@ getImage = (query, callback) ->
       #console.log(html)
       matches = html.match(/<img src="http(.*?)"/g)
       #console.log(matches)
-      randomMatch = matches[ Math.floor(matches.length * Math.random()) ]
-      url = randomMatch.split('"')[1]
-      url = url.replace(/&amp;/g, '&')
-      url += '.jpg' # trick limechat!
-      callback(url)
+      if randomMatch = sample(matches)
+        url = randomMatch.split('"')[1]
+        url = url.replace(/&amp;/g, '&')
+        url += '.jpg' # trick limechat!
+        callback(url)
+      else
+        callback(null)
 
 #getImage 'cats', (img) -> console.log img
 #return
@@ -49,14 +51,22 @@ bot.addListener 'message', (from, to, message) ->
   else if /camsnap\s+(.*)/.test(message)
     getImage RegExp.$1, (img) ->
       console.log(img)
-      bot.say(to, img)
       #bot.say(to, "http://solutions.3m.com/innovation/assets/logo.png")
+      if img
+        bot.say(to, img)
+      else
+        bot.say(to, "soRry bro!  bing must be down")
 
 
   # talk back
   else if /bingbot/.test(message)
     msg = message.replace(/bingbot/g, from)
     bot.say(to, msg)
+
+
+sample = (array) ->
+  return if !array || !array.length
+  array[ Math.floor(array.length * Math.random()) ]
 
 
   
