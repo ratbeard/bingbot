@@ -1,5 +1,29 @@
 irc = require 'irc'
+http = require 'http'
 
+# Return a url for a random image found in bing image search
+getImage = (query, callback) ->
+  url = "http://www.bing.com/images/search?q=#{query}"
+
+  http.get url, (res)->
+    html = ''
+    res.setEncoding('utf8')
+    res.on 'data', (chunk) ->
+      #console.log(chunk)
+      #console.log('xxxxxx')
+      html += chunk
+    res.on 'end', ->
+      #console.log(html)
+      matches = html.match(/<img src="http(.*?)"/g)
+      #console.log(matches)
+      randomMatch = matches[ Math.floor(matches.length * Math.random()) ]
+      url = randomMatch.split('"')[1]
+      url = url.replace(/&amp;/g, '&')
+      url += '.jpg' # trick limechat!
+      callback(url)
+
+#getImage 'cats', (img) -> console.log img
+#return
 
 bot = new irc.Client('irc.freenode.net', 'bingbot', {
   debug: true,
@@ -21,6 +45,13 @@ bot.addListener 'message', (from, to, message) ->
     msg += ":\n"
     msg += "    #{url}"
     bot.say(to, msg)
+
+  else if /camsnap\s+(.*)/.test(message)
+    getImage RegExp.$1, (img) ->
+      console.log(img)
+      bot.say(to, img)
+      #bot.say(to, "http://solutions.3m.com/innovation/assets/logo.png")
+
 
   # talk back
   else if /bingbot/.test(message)
