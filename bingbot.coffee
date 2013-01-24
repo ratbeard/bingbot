@@ -43,9 +43,8 @@ bot.addListener 'message', (from, to, message) ->
     url = "http://www.bing.com/search?q=#{query}"
     console.log(url)
 
-    msg = "You asked, I answered!  Heres those results you wanted"
-    msg += ":\n"
-    msg += "    #{url}"
+    msg = " ( ͡° ͜ʖ ͡°) You asked, I answered!  Heres those results you wanted: "
+    msg += "  #{url}"
     bot.say(to, msg)
 
   else if /camsnap\s+(.*)/.test(message)
