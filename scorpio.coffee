@@ -19,7 +19,14 @@ bot.addListener 'message', (from, to, message) ->
     [score, user] = [RegExp.$1, RegExp.$2]
     score = parseInt(score)
     scores[user] ||= 0
-    scores[user] += score
+
+    if user == from and score > 0
+      # can't award points to yourself!
+      scores[user] -= 100
+    else
+      scores[user] += score
+
+    # clean out 0 scores
     delete scores[user] if scores[user] == 0
 
     if user == 'jarjarmuppet'
