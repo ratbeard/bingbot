@@ -20,8 +20,9 @@ bot.addListener 'message', (from, to, message) ->
     score = parseInt(score)
     scores[user] ||= 0
 
+    # Can't award points to yourself unless they're negative.  
+    # +1 @pennig for the idea
     if user == from and score > 0
-      # can't award points to yourself!
       scores[user] -= 100
     else
       scores[user] += score
