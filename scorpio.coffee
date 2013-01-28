@@ -5,6 +5,7 @@ bot = new irc.Client('irc.freenode.net', 'scorpio',
   channels: ['#coolkidsusa']
 )
 
+# Store scores:
 scores = {}
 
 bot.addListener 'error', (message) ->
@@ -17,28 +18,19 @@ bot.addListener 'message', (from, to, message) ->
   if message.match(/([+-]\d+)\s+(\w+)/)
     [score, user] = [RegExp.$1, RegExp.$2]
     score = parseInt(score)
-    console.log(score, user)
-
     scores[user] ||= 0
-    total = scores[user] += score
+    scores[user] += score
+    if user == 'jarjarmuppet'
+      bot.say to, "bing what about jarjarmuppet"
 
-    console.log(scores)
-
-    msg = "#{user} has #{total} points"
-    bot.say(to, msg)
-
+  else if message.match /score (\w+)/
+    user = RegExp.$1
+    msg = "#{user} has #{scores[user]} points"
+    bot.say to, msg
     
   else if message.match /whats the score/
     msg = for name, score of scores
       "#{name} has #{score} points"
-      
-    bot.say to, msg.join(", ")
-
-  # talk back
-  #if /jarjarmuppet/.test(message)
-    #msg = "wesa in deep #doodoo"
-    #bot.say(to, msg)
-
-
-
+    msg = msg.join(", ")
+    bot.say to, msg
 
