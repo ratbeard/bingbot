@@ -5,7 +5,7 @@ bot = new irc.Client('irc.freenode.net', 'scorpio',
   channels: ['#coolkidsusa']
 )
 
-# Store scores:
+# Store scores.  TODO - store in a heroku cloud (thanks @cujojp for idea)
 scores = {}
 
 bot.addListener 'error', (message) ->
