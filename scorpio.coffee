@@ -20,6 +20,8 @@ bot.addListener 'message', (from, to, message) ->
     score = parseInt(score)
     scores[user] ||= 0
     scores[user] += score
+    delete scores[user] if scores[user] == 0
+
     if user == 'jarjarmuppet'
       bot.say to, "bing what about jarjarmuppet"
 
