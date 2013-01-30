@@ -15,7 +15,7 @@ bot.addListener 'error', (message) ->
 bot.addListener 'message', (from, to, message) ->
   console.log('%s => %s: %s', from, to, message)
 
-  if message.match(/([+-]\d+)\s+(\w+)/)
+  if message.match(/([+-]\d+)\s+(\S+)/)
     [score, user] = [RegExp.$1, RegExp.$2]
     score = parseInt(score)
     scores[user] ||= 0
@@ -33,9 +33,10 @@ bot.addListener 'message', (from, to, message) ->
     if user == 'jarjarmuppet'
       bot.say to, "bing what about jarjarmuppet"
 
-  else if message.match /score (\w+)/
+  else if message.match /score (\S+)/
     user = RegExp.$1
-    msg = "#{user} has #{scores[user]} points"
+    score = scores[user] || 'no'
+    msg = "#{user} has #{score} points"
     bot.say to, msg
     
   else if message.match /whats the score/
