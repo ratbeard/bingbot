@@ -25,6 +25,7 @@ sayGibberish = ->
     "griswold"
     "pennig"
   ]
+  name = names[ Math.floor(Math.random() * names.length) ]
   directMessages = [
     "hey yo, daddy, #{name}.  meesa back!"
     "#{name}, hello boyo!"
@@ -33,7 +34,6 @@ sayGibberish = ->
     "#{name}, I don't know. mesa day startin pretty okee-day with a brisky morning munchy, then boom! gettin very scared and grabbin that jedi and pow!"
     "#{name}, ooh mooey mooey i love you!"
   ]
-  name = names[ Math.floor(Math.random() * names.length) ]
   msg = directMessages[ Math.floor(Math.random() * directMessages.length) ]
   bot.say '#coolkidsusa', msg
 
@@ -52,6 +52,6 @@ bot.addListener 'message', (from, to, message) ->
     bot.say(to, globalMessages[ Math.floor(Math.random() * globalMessages.length) ])
 
   
-setInterval sayGibberish, 5 * 60 * 1000
+setInterval sayGibberish, 5 * 60 * 1000 * (Math.random() * 15)
 
 
