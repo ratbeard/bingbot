@@ -24,6 +24,20 @@ getImage = (query, callback) ->
       else
         callback(null)
 
+# GOOOGLE
+getImage = (query, callback) ->
+  url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=1&q=#{query}"
+  http.get url, (res) ->
+    html = ''
+    res.setEncoding('utf8')
+    res.on 'data', (chunk) ->
+      html += chunk
+    res.on 'end', ->
+      data = JSON.parse(html)
+      img = data.responseData?.results?[0].url
+      callback(img)
+    
+
 #getImage 'cats', (img) -> console.log img
 #return
 
