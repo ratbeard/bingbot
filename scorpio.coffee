@@ -6,7 +6,7 @@ bot = new irc.Client('irc.freenode.net', 'scorpio',
 )
 
 # Store scores.  TODO - store in a heroku cloud (thanks @cujojp for idea)
-scores = {}
+scores = { dubs: 1000000 }
 
 bot.addListener 'error', (message) ->
   console.error 'fuk:', message
@@ -32,6 +32,10 @@ bot.addListener 'message', (from, to, message) ->
 
     if user == 'jarjarmuppet'
       bot.say to, "bing what about jarjarmuppet"
+
+    if user == 'dubs'
+      bot.say to, 'dubs is the best'
+      scores.dubs += Math.abs(score)
 
   else if match = message.match /score (\S+)/
     user = match[1]
