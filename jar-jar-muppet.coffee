@@ -38,6 +38,10 @@ sayGibberish = ->
   bot.say '#coolkidsusa', msg
 
 
+bot.addListener 'nick', (old, now, channels, message) ->
+  bot.say(channels[0], "#{old} hasa new nama!  Datsa gonna be a wesa bit tricky for mesa to remembur...")
+
+
 bot.addListener 'message', (from, to, message) ->
   console.log('%s => %s: %s', from, to, message)  
   # talk back
