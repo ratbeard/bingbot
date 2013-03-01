@@ -1,6 +1,10 @@
 irc = require 'irc'
 http = require 'http'
 
+sample = (array) ->
+  return if !array || !array.length
+  array[ Math.floor(array.length * Math.random()) ]
+
 # Return a url for a random image found in bing image search
 getImage = (query, callback) ->
   url = "http://www.bing.com/images/search?q=#{query}"
@@ -26,7 +30,7 @@ getImage = (query, callback) ->
 
 # GOOOGLE
 getImage = (query, callback) ->
-  url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=1&q=#{query}"
+  url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=8&q=#{query}"
   http.get url, (res) ->
     html = ''
     res.setEncoding('utf8')
@@ -34,12 +38,12 @@ getImage = (query, callback) ->
       html += chunk
     res.on 'end', ->
       data = JSON.parse(html)
-      img = data.responseData?.results?[0].url
+      console.log data
+      img = sample(data.responseData?.results).url
       callback(img)
     
 
-#getImage 'cats', (img) -> console.log img
-#return
+#return getImage 'cats', (img) -> console.log img
 
 bot = new irc.Client('irc.freenode.net', 'bingbot', {
   debug: true,
@@ -77,9 +81,6 @@ bot.addListener 'message', (from, to, message) ->
     bot.say(to, msg)
 
 
-sample = (array) ->
-  return if !array || !array.length
-  array[ Math.floor(array.length * Math.random()) ]
 
 
   
