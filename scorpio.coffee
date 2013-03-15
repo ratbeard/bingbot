@@ -22,7 +22,7 @@ bot.addListener 'message', (from, to, message) ->
 
     # Dubs is invincible
     if user == 'dubs'
-      scores[user] += Math.abs(score)
+      scores[user] += -1 * score
     # Can't award points to yourself unless they're negative.  +1 @pennig
     else if user == from and score > 0
       scores[user] -= 100
