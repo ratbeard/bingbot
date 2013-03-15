@@ -20,9 +20,11 @@ bot.addListener 'message', (from, to, message) ->
     score = parseInt(score)
     scores[user] ||= 0
 
-    # Can't award points to yourself unless they're negative.  
-    # +1 @pennig for the idea
-    if user == from and score > 0
+    # Dubs is invincible
+    if user == 'dubs'
+      scores[user] += Math.abs(score)
+    # Can't award points to yourself unless they're negative.  +1 @pennig
+    else if user == from and score > 0
       scores[user] -= 100
     else
       scores[user] += score
@@ -32,10 +34,6 @@ bot.addListener 'message', (from, to, message) ->
 
     if user == 'jarjarmuppet'
       bot.say to, "bing what about jarjarmuppet"
-
-    if user == 'dubs'
-      bot.say to, 'dubs is the best'
-      scores.dubs += Math.abs(score)
 
   else if match = message.match /score (\S+)/
     user = match[1]
