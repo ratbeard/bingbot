@@ -18,6 +18,7 @@ bot.addListener 'message', (from, to, message) ->
     addGameResult({winner1, winner2, loser1, loser2, wins, losses})
 
   else if match = message.match(/!games/)
+    readFromFile()
     for game in games
       msg = "#{game.winner1} and #{game.winner2} beat the shit out of #{game.loser1} and #{game.loser2}, #{game.wins} to #{game.losses}"
       bot.say to, msg
