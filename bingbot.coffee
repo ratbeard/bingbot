@@ -37,10 +37,13 @@ getImage = (query, callback) ->
     res.on 'data', (chunk) ->
       html += chunk
     res.on 'end', ->
-      data = JSON.parse(html)
-      console.log data
-      img = sample(data.responseData?.results).url
-      callback(img)
+      try
+        data = JSON.parse(html)
+        console.log data
+        img = sample(data.responseData?.results)?.url
+        callback(img)
+      catch e
+         console.log html
     
 
 #return getImage 'cats', (img) -> console.log img
