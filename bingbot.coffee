@@ -77,6 +77,17 @@ bot.addListener 'message', (from, to, message) ->
       else
         bot.say(to, "soRry bro!  bing must be down")
 
+  else if /campsnap\s*(.*)/.test(message)
+    getImage "camp counselor " + RegExp.$1, (img) ->
+      console.log(img)
+      #bot.say(to, "http://solutions.3m.com/innovation/assets/logo.png")
+      if img
+        bot.say(to, img)
+      else
+        bot.say(to, "soRry bro!  bing must be down")
+
+
+
 
   # talk back
   else if /bingbot/.test(message)
