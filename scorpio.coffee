@@ -35,13 +35,13 @@ bot.addListener 'message', (from, to, message) ->
     if user == 'jarjarmuppet'
       bot.say to, "bing what about jarjarmuppet"
 
-  else if match = message.match /score (\S+)/
+  else if match = message.match /^score (\S+)/
     user = match[1]
     score = scores[user] || 'no'
     msg = "#{user} has #{score} points"
     bot.say to, msg
     
-  else if message.match /whats the score/
+  else if message.match /^whats the score/
     msg = for name, score of scores
       "#{name} has #{score} points"
     msg = msg.join(", ")
