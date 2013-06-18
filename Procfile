@@ -1,1 +1,1 @@
-web: coffee scorpio.coffee
+web: 
