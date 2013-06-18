@@ -1,1 +1,1 @@
-web: coffee scorpio.coffee
+worker: coffee scorpio.coffee
