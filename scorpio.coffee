@@ -2,7 +2,7 @@ irc = require 'irc'
 
 bot = new irc.Client('irc.freenode.net', 'scorpio',
   debug: true,
-  channels: ['#coolkidsusa']
+  channels: ['#discretemeetups']
 )
 
 # Store scores.  TODO - store in a heroku cloud (thanks @cujojp for idea)
