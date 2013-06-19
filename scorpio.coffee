@@ -2,8 +2,12 @@ irc = require 'irc'
 
 bot = new irc.Client('irc.freenode.net', 'scorpio',
   debug: true,
-  channels: ['#coolkidsusa']
+  channels: ['#fuk']
 )
+
+mongo = require 'mongodb'
+server = new mongo.Server "127.0.0.1", 27017, {}
+client = new mongo.Db 'test', server
 
 # Store scores.  TODO - store in a heroku cloud (thanks @cujojp for idea)
 scores = { dubs: 1000000 }
@@ -20,11 +24,8 @@ bot.addListener 'message', (from, to, message) ->
     score = parseInt(score)
     scores[user] ||= 0
 
-    # Dubs is invincible
-    if user == 'dubs'
-      scores[user] += -1 * score
     # Can't award points to yourself unless they're negative.  +1 @pennig
-    else if user == from and score > 0
+    if user == from and score > 0
       scores[user] -= 100
     else
       scores[user] += score
