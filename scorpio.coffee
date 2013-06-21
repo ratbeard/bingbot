@@ -24,12 +24,6 @@ class Scorpio
   clearScores: =>
     return
 
-  #getCollection: =>
-    #@database.collection('users', (callback) =>
-      #if (error)
-        #@_handleError(error)
-      #else
-
   ## will loop through the fields and get the users
   getScores: (query) =>
     
@@ -66,16 +60,6 @@ class Scorpio
           newScore = (currScore += value)
           @setUserScore(user, currScore, newScore)
     )
-
-    #@dbCollection.update("_user" : "#{user}", {$set : {"points":"#{val}"
-
-    #@dbCollection.findOne( 
-      #if (error)
-        #@_handleError(error)
-      #else
-        
-    #)
-    
 
   addScore: (user, value) =>
     userData = user
@@ -182,6 +166,7 @@ class Scorpio
     @dbModel = @database
     @database.addListener( "error", @_handleError )
 
+    #creates collection of users
     @database.collection('users', (error, callback) =>
       if (error)
         @_handleError(error)
@@ -189,23 +174,7 @@ class Scorpio
         @dbCollection = @database.collection('users')
         @_connectBot()
     )
-    #creates collection of users
     
-    #@database.createCollection('users',  (error, collection) =>
-      #if error
-        #@_handleError(error)
-      #else
-        #collection.insert( {"test":"value"}, (error, inserted) =>
-          #if (error) then @_handleError(error)
-        #)
-        #collection.findOne( 'users' : 'users' , (error, doc) =>
-          #console.log "good to go\n\n\n\n\n\n",  @database
-        #)
-    #)
-
-    ## since the database exists now, connect the bot to IRC
-    #@_connectBot()
-
 
   _init: =>
     @_connectDb()
