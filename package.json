@@ -1,0 +1,15 @@
+{
+  "name": "scorpio",
+  "version": "0.0.1",
+  "dependencies": {
+    "coffee-script": "~1.4.0",
+    "node-dev": "~0.2.9",
+    "express": "2.5.8",
+    "connect": "1.8.x",
+    "mongodb" : "1.1.11" 
+  },
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.2.x"
+  }
+}
