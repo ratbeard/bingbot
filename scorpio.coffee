@@ -7,7 +7,6 @@ class Scorpio
 
   constructor : (options) ->
     @options          = $.extend(@defaults, options)
-    @mainApp          = $( @options.mainAppPage )
     @botName          = @options.bot_name
     @appID            = @options.app_name
     @appSecret        = @options.app_secret
@@ -15,14 +14,17 @@ class Scorpio
 
     #database configs
     @database         = null
-    @dbCollection     = ['users','score']
+    @dbCollection     = null
     @databasePort     = @options.app_port
 
     # inti the new scorpio!
     @_init()
 
   clearScores: =>
-    return
+    @dbCollection.remove( "points" : 0, (error, callback) =>
+      if (error) then @_handleError(error)
+    )
+
 
 
   addUser: (user, value) =>
@@ -119,11 +121,9 @@ class Scorpio
   _initListeners: =>
     # Listen to new messages for addings and removing points 
     @bot.addListener 'message', (from, to, message) =>
-      console.log('%s => %s: %s', from, to, message)
+      #console.log('%s => %s: %s', from, to, message)
 
-      @dbCollection.remove( "points" : 0, (error, callback) =>
-        if (error) then @_handleError(error)
-      )
+      @clearScores()
 
       if match = message.match(/([+-]\d+)\s+(\S+)/)
         [_, score, user] = match
@@ -147,6 +147,7 @@ class Scorpio
     # Something has gone wrong :(
     @bot.addListener 'error', (message) ->
       @_handleError(message)
+
 
   _connectDb: =>
     mongoQuery = "mongodb://#{@appID}:#{@appSecret}.mongolab.com:#{@databasePort}/#{@appID}"
