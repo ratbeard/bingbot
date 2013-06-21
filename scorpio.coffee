@@ -97,6 +97,7 @@ class Scorpio
         if (!userCallback)
           # if the user doesnt exist we cant tell any scores
           msg = "#{user} has no points"
+          @bot.say to, msg
           return
         if (userCallback.points)
           # if the user has score we can print the score
@@ -146,6 +147,9 @@ class Scorpio
       if match = message.match(/([+-]\d+)\s+(\S+)/)
         [_, score, user] = match
         score = parseInt(score)
+
+        if user == from and score > 0
+          score = -100
 
         @addScore(user, score)
 
