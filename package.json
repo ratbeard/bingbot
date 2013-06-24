@@ -4,9 +4,10 @@
   "dependencies": {
     "coffee-script": "~1.4.0",
     "node-dev": "~0.2.9",
-    "express": "2.5.8",
-    "mongodb" : "1.1.11", 
-    "connect": "1.8.x"
+    "irc": "0.3.6",
+    "jquery": "2.0.0",
+    "connect": "1.8.x",
+    "mongodb" : "1.1.11" 
   },
   "engines": {
     "node": "0.10.x",
