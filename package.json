@@ -5,7 +5,7 @@
     "coffee-script": "~1.4.0",
     "node-dev": "~0.2.9",
     "irc": "0.3.6",
-    "jquery": "2.0.0",
+    "jquery": "1.8.3",
     "connect": "1.8.x",
     "mongodb" : "1.1.11" 
   },
