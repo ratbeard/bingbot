@@ -134,7 +134,7 @@ class Scorpio
 
         @addScore(user, score)
 
-      else if match = message.match /score (\S+)/
+      else if match = message.match /^score (\S+)/
 
         user = match[1]
         @sayScore(from, to, user)
