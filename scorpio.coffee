@@ -26,9 +26,8 @@ class Scorpio
     )
 
 
-
   addUser: (user, value) =>
-    #console.log "Adding user #{user} in the database"
+    console.log "Adding user #{user} in the database"
     @dbCollection.insert({"_user": user, "points": value }, (error, inserted) =>
       if (error) then @_handleError(error)
     )
@@ -39,7 +38,6 @@ class Scorpio
     @dbCollection.update("_user":"#{user}",{$set: {"points": newScore}}, (error, cb) =>
       if (error) then @_handleError(error)
     )
-
 
   findUserScore: (user, value) =>
     #console.log "user #{user} exists in the db"
@@ -122,7 +120,6 @@ class Scorpio
     # Listen to new messages for addings and removing points 
     @bot.addListener 'message', (from, to, message) =>
       #console.log('%s => %s: %s', from, to, message)
-
       @clearScores()
 
       if match = message.match(/([+-]\d+)\s+(\S+)/)
@@ -180,7 +177,7 @@ class Scorpio
 bot = new Scorpio(
   bot_name: 'scorpio',
   irc_channel: '#coolkidsusa',
-  app_name: '<<YOUR HEROKU APP NAME>>',
-  app_secret: '<<YOUR HEROKU APP SECRET>>',
-  app_port: '<<YOUR HEROKU MONGO APP PORT>>'
+  app_name: 'heroku_app16378963',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
+  app_port: '31608'
 )
