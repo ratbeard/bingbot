@@ -70,6 +70,27 @@ class Scorpio
         @findUserScore(userData, value)
     )
 
+  findScores: (from, to, order) =>
+
+    if order is 'ascending'
+      orderBy = -1
+    else
+      orderBy = 1
+
+    @dbCollection.find().sort({ points: orderBy }).toArray((err, results) =>
+      user = results[0]
+      userName = user._user
+      userPoints = user.points
+
+      if order is 'ascending'
+        msg = "#{userName} is the leader with #{userPoints} points"
+      else
+        msg = "#{userName} is losing with #{userPoints} points"
+
+      @bot.say(to, msg)
+    )
+
+
   sayScore: (from, to, user) =>
     @dbCollection.findOne("_user":"#{user}", (error, userCallback) =>
       if (error)
@@ -136,10 +157,19 @@ class Scorpio
         user = match[1]
         @sayScore(from, to, user)
       
-      else if message.match /whats the score/
+      else if message.match /^whats the score/
 
         @sayScores(from, to)
 
+      else if message.match /^points loser/
+        order = 'descending'
+
+        @findScores(from, to, order)
+
+      else if message.match /^points winner/
+        order = 'ascending'
+
+        @findScores(from, to, order)
 
     # Something has gone wrong :(
     @bot.addListener 'error', (message) ->
@@ -150,12 +180,18 @@ class Scorpio
     mongoQuery = "mongodb://#{@appID}:#{@appSecret}.mongolab.com:#{@databasePort}/#{@appID}"
     mongoUri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || mongoQuery
     
-    console.log "~~~!! CONNECTING TO DB !!~~~~"
+    console.log "~~~!! CONNECTING TO DB !!~~~~ \n", mongoUri
     mongo.connect( mongoUri, @dbCollection, @_dbConnectCallback )
 
 
   _dbConnectCallback: (error, db) =>
-    console.log '~~~!! CONNECTED TO MONGODB !!~~~~', db
+    console.log '~~~!! CONNECTED TO MONGODB !!~~~~'
+
+    ## if the db comes back as null || undefined we have a problem
+    if (!db || error)
+      if (!error) then error = "Database is undefined"
+      return @_handleError(error)
+      
 
     @database = db
     @dbModel = @database
@@ -176,8 +212,8 @@ class Scorpio
 
 bot = new Scorpio(
   bot_name: 'scorpio',
-  irc_channel: '#coolkidsusa',
-  app_name: '<<YOUR HEROKU APP ID>>',
-  app_secret: '<<YOUR HEROKY APP SECRET>>',
-  app_port: '<<MONGODB PORT>>'
+  irc_channel: '#kanyeszone',
+  app_name: 'heroku_app16378963',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
+  app_port: '31608'
 )
