@@ -166,7 +166,7 @@ class Scorpio
 
         @findScores(from, to, order)
 
-      else if message.match /^points winner/
+      else if message.match /^points leader/
         order = 'ascending'
 
         @findScores(from, to, order)
