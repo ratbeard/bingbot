@@ -111,17 +111,35 @@ class Scorpio
           @bot.say to, msg
     )
 
-  sayScores: (from, to) =>
-    @dbCollection.find().toArray((err, results)  =>
-      msg = for scores in results
-        userScore = scores.points
-        userName = scores._user
-        "#{userName} has #{userScore} points"
+  sayScores: (from, to, limit, order) =>
+    console.log "SAYING SCORES #{limit} #{order}"
+    if limit and order
+      limitBy = parseInt(limit)
 
-      msg = msg.join(", ")
-      @bot.say(to, msg)
+      if order is 'ascending' then orderBy = -1 else orderBy = 1
+      @dbCollection.find().limit(limitBy).sort({ points: orderBy }).toArray((err, results)  =>
+        console.log 'FOUND RESULTS', results
+        msg = for scores in results
+          userScore = scores.points
+          userName = scores._user
+          "#{userName} has #{userScore} points"
 
-    )
+        msg = msg.join(", ")
+        @bot.say(to, msg)
+      )
+    else if limit
+      limitBy = parseInt(limit)
+
+      @dbCollection.find().limit(limitBy).sort({$natural:-1}).toArray((err, results)  =>
+        console.log 'FOUND RESULTS', results
+        msg = for scores in results
+          userScore = scores.points
+          userName = scores._user
+          "#{userName} has #{userScore} points"
+
+        msg = msg.join(", ")
+        @bot.say(to, msg)
+      )
 
   _handleError: (message) =>
     # quality error handling 
@@ -157,10 +175,29 @@ class Scorpio
         user = match[1]
         @sayScore(from, to, user)
       
-      else if message.match /^whats the score/
+      else if match = message.match /^whats the score (\S+) (\d+) (\S+)/
 
-        @sayScores(from, to)
+        console.log 'were looking for three options, -l num -a||-d'
+        if match[1] is '-l'
+          limit = match[2]
+          if match[3] is '-a' then order = 'ascending' else order = 'descending'
+          @sayScores(from, to, limit, order)
 
+      else if match = message.match /^whats the score (\S+) (\S+)/
+        if match[1] is '-l'
+          limit = match[2]
+          @sayScores(from, to, limit)
+
+
+      else if match = message.match /^whats the score (\S+)/
+        if match[1] is '-a' then order = 'ascending' else order = 'descending'
+        @sayScores(from, to, limit, order)
+
+      else if match = message.match /^whats the score/
+        limit = 10
+        @sayScores(from, to, limit)
+
+        
       else if message.match /^points loser/
         order = 'descending'
 
@@ -213,7 +250,7 @@ class Scorpio
 bot = new Scorpio(
   bot_name: 'scorpio',
   irc_channel: '#coolkidsusa',
-  app_name: '<< YOUR HEROKU APP ID >>',
-  app_secret: '<< YOUR HEROKU APP SECRET >>',
+  app_name: 'heroku_app16378963',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
 )
