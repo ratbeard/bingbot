@@ -34,13 +34,13 @@ class Scorpio
 
 
   setUserScore: (user, currScore, newScore) =>
-    #console.log "SETTING NEW SCORE FOR #{user}, OLD SCORE: #{currScore}, NEW SCORE: #{newScore}"
+    console.log "SETTING NEW SCORE FOR #{user}, OLD SCORE: #{currScore}, NEW SCORE: #{newScore}"
     @dbCollection.update("_user":"#{user}",{$set: {"points": newScore}}, (error, cb) =>
       if (error) then @_handleError(error)
     )
 
   findUserScore: (user, value) =>
-    #console.log "user #{user} exists in the db"
+    console.log "user #{user} exists in the db"
 
     val = parseInt(value)
     currScore = null
@@ -113,14 +113,26 @@ class Scorpio
           @bot.say to, msg
     )
 
+  _checkLimit: (limitBy) =>
+    ## We don't want to flood the chat with a bunch of scores
+    if (limitBy >= 50)
+      return false
+    else if isNaN(limitBy)
+      return false
+    else
+      return true
+    
+
   sayScores: (from, to, limit, order) =>
     console.log "SAYING SCORES #{limit} #{order}"
     if limit and order
       limitBy = parseInt(limit)
 
+      console.log 'checking limit', @_checkLimit(limitBy)
+      unless @_checkLimit(limitBy) then return false
+
       if order is 'ascending' then orderBy = -1 else orderBy = 1
       @dbCollection.find().limit(limitBy).sort({ points: orderBy }).toArray((err, results)  =>
-        console.log 'FOUND RESULTS', results
         msg = for scores in results
           userScore = scores.points
           userName = scores._user
@@ -132,8 +144,10 @@ class Scorpio
     else if limit
       limitBy = parseInt(limit)
 
+      console.log 'checking limit', @_checkLimit(limitBy)
+      unless @_checkLimit(limitBy) then return false
+
       @dbCollection.find().limit(limitBy).sort({$natural:-1}).toArray((err, results)  =>
-        console.log 'FOUND RESULTS', results
         msg = for scores in results
           userScore = scores.points
           userName = scores._user
@@ -186,7 +200,6 @@ class Scorpio
       
       else if match = message.match /^whats the score (\S+) (\d+) (\S+)/
 
-        console.log 'were looking for three options, -l num -a||-d'
         if match[1] is '-l'
           limit = match[2]
           if match[3] is '-a' then order = 'ascending' else order = 'descending'
@@ -259,7 +272,7 @@ class Scorpio
 
 bot = new Scorpio(
   bot_name: 'scorpio',
-  irc_channel: '#coolkidsusa',
+  irc_channel: '#kanyeszone',
   app_name: 'heroku_app16378963',
   app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
