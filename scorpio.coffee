@@ -60,6 +60,8 @@ class Scorpio
 
   addScore: (user, value) =>
     userData = user
+    console.log "ADDING SCORE FOR #{user}"
+
     # Get the Name of the user against the db
     @dbCollection.findOne( "_user":"#{userData}", (error, userCallback) =>
       if userCallback is null
@@ -155,6 +157,12 @@ class Scorpio
     ## initialize the bot listeners
     @_initListeners()
 
+  _handleBingbot: (user) =>
+    if user is 'bingbot'
+      user = 'b1ngbot'
+    
+    return user
+
   _initListeners: =>
     # Listen to new messages for addings and removing points 
     @bot.addListener 'message', (from, to, message) =>
@@ -165,15 +173,16 @@ class Scorpio
         [_, score, user] = match
         score = parseInt(score)
 
-        if user == from and score > 0
+        if @_handleBingbot(user) == from and score > 0
           score = -100
 
-        @addScore(user, score)
+        @addScore(@_handleBingbot(user), score)
 
       else if match = message.match /^score (\S+)/
 
         user = match[1]
-        @sayScore(from, to, user)
+        
+        @sayScore(from, to, @_handleBingbot(user))
       
       else if match = message.match /^whats the score (\S+) (\d+) (\S+)/
 
@@ -250,8 +259,8 @@ class Scorpio
 
 bot = new Scorpio(
   bot_name: 'scorpio',
-  irc_channel: '#coolkidsusa',
-  app_name: '<< YOUR HEROKU APP ID >>',
-  app_secret: '<< YOUR HEROKU APP SECRET >>',
+  irc_channel: '#kanyeszone',
+  app_name: 'heroku_app16378963',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
 )
