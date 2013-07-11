@@ -115,7 +115,7 @@ class Scorpio
 
   _checkLimit: (limitBy) =>
     ## We don't want to flood the chat with a bunch of scores
-    if (limitBy >= 50)
+    if (limitBy >= 50 or limitBy is 0)
       return false
     else if isNaN(limitBy)
       return false
