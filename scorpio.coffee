@@ -191,6 +191,7 @@ class Scorpio
 
       else if match = message.match /^whats the score (\S+)/
         if match[1] is '-a' then order = 'ascending' else order = 'descending'
+        limit = 10
         @sayScores(from, to, limit, order)
 
       else if match = message.match /^whats the score/
