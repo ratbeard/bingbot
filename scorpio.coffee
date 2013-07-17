@@ -64,10 +64,12 @@ class Scorpio
 
     unless user.indexOf("http://") is -1
       user = user.replace('http://', '')
+      userData = user
       console.log user
 
     unless user.indexOf("https://") is -1
       user = user.replace('https://', '')
+      userData = user
       console.log user
 
     # Get the Name of the user against the db
