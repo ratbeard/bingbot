@@ -141,7 +141,8 @@ class Scorpio
 
       console.log 'checking limit', @_checkLimit(limitBy)
       unless @_checkLimit(limitBy)
-        @bot.say "You must enter an integer which cannot exceed #{@limit}"
+        msg = "You must enter an integer which cannot exceed #{@limit}"
+        @bot.say(to, msg)
         return false
 
       if order is 'ascending' then orderBy = -1 else orderBy = 1
@@ -159,7 +160,8 @@ class Scorpio
 
       console.log 'checking limit', @_checkLimit(limitBy)
       unless @_checkLimit(limitBy)
-        @bot.say "You must enter an integer which cannot exceed #{@limit}"
+        msg = "You must enter an integer which cannot exceed #{@limit}"
+        @bot.say(to, msg)
         return false
 
       @dbCollection.find().limit(limitBy).sort({$natural:-1}).toArray((err, results)  =>
