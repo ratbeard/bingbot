@@ -11,6 +11,7 @@ class Scorpio
     @appID            = @options.app_name
     @appSecret        = @options.app_secret
     @chatChannel      = [ @options.irc_channel ]
+    @limit            = @options.search_limit
 
     #database configs
     @database         = null
@@ -125,7 +126,7 @@ class Scorpio
 
   _checkLimit: (limitBy) =>
     ## We don't want to flood the chat with a bunch of scores
-    if (limitBy >= 50 or limitBy is 0)
+    if (limitBy >= @limit or limitBy is 0)
       return false
     else if isNaN(limitBy)
       return false
@@ -139,7 +140,9 @@ class Scorpio
       limitBy = parseInt(limit)
 
       console.log 'checking limit', @_checkLimit(limitBy)
-      unless @_checkLimit(limitBy) then return false
+      unless @_checkLimit(limitBy)
+        @bot.say "You must enter an integer which cannot exceed #{@limit}"
+        return false
 
       if order is 'ascending' then orderBy = -1 else orderBy = 1
       @dbCollection.find().limit(limitBy).sort({ points: orderBy }).toArray((err, results)  =>
@@ -155,7 +158,9 @@ class Scorpio
       limitBy = parseInt(limit)
 
       console.log 'checking limit', @_checkLimit(limitBy)
-      unless @_checkLimit(limitBy) then return false
+      unless @_checkLimit(limitBy)
+        @bot.say "You must enter an integer which cannot exceed #{@limit}"
+        return false
 
       @dbCollection.find().limit(limitBy).sort({$natural:-1}).toArray((err, results)  =>
         msg = for scores in results
@@ -282,6 +287,7 @@ class Scorpio
 
 bot = new Scorpio(
   bot_name: 'scorpio',
+  search_limit: 75,
   irc_channel: '#coolkidsusa',
   app_name: 'heroku_app16378963',
   app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
