@@ -62,6 +62,14 @@ class Scorpio
     userData = user
     console.log "ADDING SCORE FOR #{user}"
 
+    unless user.indexOf("http://") is -1
+      user = user.replace('http://', '')
+      console.log user
+
+    unless user.indexOf("https://") is -1
+      user = user.replace('https://', '')
+      console.log user
+
     # Get the Name of the user against the db
     @dbCollection.findOne( "_user":"#{userData}", (error, userCallback) =>
       if userCallback is null
@@ -272,7 +280,7 @@ class Scorpio
 
 bot = new Scorpio(
   bot_name: 'scorpio',
-  irc_channel: '#coolkidsusa',
+  irc_channel: '#kanyeszone',
   app_name: 'heroku_app16378963',
   app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
