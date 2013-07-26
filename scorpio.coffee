@@ -29,14 +29,14 @@ class Scorpio
 
   addUser: (user, value) =>
     console.log "Adding user #{user} in the database"
-    @dbCollection.insert({"_user": user, "points": value }, (error, inserted) =>
+    @dbCollection.insert({"_user": "/^#{user}$/i", "points": value }, (error, inserted) =>
       if (error) then @_handleError(error)
     )
 
 
   setUserScore: (user, currScore, newScore) =>
     console.log "SETTING NEW SCORE FOR #{user}, OLD SCORE: #{currScore}, NEW SCORE: #{newScore}"
-    @dbCollection.update("_user":"#{user}",{$set: {"points": newScore}}, (error, cb) =>
+    @dbCollection.update("_user":"/^#{user}$/i",{$set: {"points": newScore}}, (error, cb) =>
       if (error) then @_handleError(error)
     )
 
@@ -46,8 +46,8 @@ class Scorpio
     val = parseInt(value)
     currScore = null
     newScore = null
-
-    @dbCollection.findOne("_user":"#{user}", (error, userCallback) =>
+                                   
+    @dbCollection.findOne("_user":"/^#{user}$/i", (error, userCallback) =>
       if (error)
         @_handleError(error)
       else
@@ -291,7 +291,7 @@ bot = new Scorpio(
   bot_name: 'scorpio',
   search_limit: 75,
   irc_channel: '#coolkidsusa',
-  app_name: '<< YOUR HEROKU APP ID >>',
-  app_secret: '<< YOUR HEROKU APP SECRET>>',
+  app_name: 'heroku_app16378963',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
 )
