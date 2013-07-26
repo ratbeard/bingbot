@@ -29,14 +29,13 @@ class Scorpio
 
   addUser: (user, value) =>
     console.log "Adding user #{user} in the database"
-    @dbCollection.insert({"_user": "/^#{user}$/i", "points": value }, (error, inserted) =>
+    @dbCollection.insert({"_user": user, "points": value }, (error, inserted) =>
       if (error) then @_handleError(error)
     )
 
-
   setUserScore: (user, currScore, newScore) =>
     console.log "SETTING NEW SCORE FOR #{user}, OLD SCORE: #{currScore}, NEW SCORE: #{newScore}"
-    @dbCollection.update("_user":"/^#{user}$/i",{$set: {"points": newScore}}, (error, cb) =>
+    @dbCollection.update("_user": { "$regex": "^#{user}$", "$options": "-i" },{$set: {"points": newScore}}, (error, cb) =>
       if (error) then @_handleError(error)
     )
 
@@ -46,14 +45,15 @@ class Scorpio
     val = parseInt(value)
     currScore = null
     newScore = null
-                                   
-    @dbCollection.findOne("_user":"/^#{user}$/i", (error, userCallback) =>
+
+    @dbCollection.findOne("_user":{ $regex: "^#{user}$", "$options": "-i" }, (error, userCallback) =>
       if (error)
+        console.log "error"
         @_handleError(error)
       else
         #we need to get the value of user_field and update it
+        console.log "WE FOUND USER #{user} DATA: #{userCallback}"
         if (userCallback.points)
-          #console.log "WE FOUND USER #{user} DATA: #{userCallback.points}"
           currScore = userCallback.points
           newScore = (currScore += value)
           @setUserScore(user, currScore, newScore)
@@ -74,7 +74,7 @@ class Scorpio
       console.log user
 
     # Get the Name of the user against the db
-    @dbCollection.findOne( "_user":"#{userData}", (error, userCallback) =>
+    @dbCollection.findOne( "_user": { $regex: "^#{userData}$", "$options": "-i"}, (error, userCallback) =>
       if userCallback is null
         # if user doesnt exist in the db add them
         @addUser(userData, value)
@@ -105,7 +105,7 @@ class Scorpio
 
 
   sayScore: (from, to, user) =>
-    @dbCollection.findOne("_user":"#{user}", (error, userCallback) =>
+    @dbCollection.findOne("_user": { $regex: "^#{user}$", "$options": "-i" }, (error, userCallback) =>
       if (error)
         @_handleError(error)
       else
