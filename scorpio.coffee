@@ -190,8 +190,8 @@ class Scorpio
 
   _handleBingbot: (user) =>
     if user.indexOf('bingbot') >= 0
-      user.replace('bingbot','b1ngbot')
-    
+      user = user.replace('bingbot','b1ngbot')
+
     return user
 
   _initListeners: =>
