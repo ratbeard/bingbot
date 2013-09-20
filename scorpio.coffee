@@ -134,6 +134,14 @@ class Scorpio
       return true
     
 
+  sayScoreCount: (from, to, limit, order) =>
+    @dbCollection.find().count((err, results) =>
+      msg = "Total number of scores: #{results}"
+
+      @bot.say(to, msg)
+    )
+
+
   sayScores: (from, to, limit, order) =>
     console.log "SAYING SCORES #{limit} #{order}"
     if limit and order
@@ -248,6 +256,10 @@ class Scorpio
 
         @findScores(from, to, order)
 
+      else if message.match /^points count/
+
+        @sayScoreCount(from, to);
+
     # Something has gone wrong :(
     @bot.addListener 'error', (message) ->
       @_handleError(message)
@@ -290,7 +302,7 @@ class Scorpio
 bot = new Scorpio(
   bot_name: 'scorpio',
   search_limit: 75,
-  irc_channel: '#coolkidsusa',
+  irc_channel: '#coolkidsusa'
   app_name: 'heroku_app16378963',
   app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
