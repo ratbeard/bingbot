@@ -255,7 +255,7 @@ class Scorpio
 
         @findScores(from, to, order)
 
-      else if message.match /^points count/ || message.match /^points total/
+      else if (message.match /^points count/ || message.match /^points total/)
         @sayScoreCount(from, to)
 
     # Something has gone wrong :(
