@@ -137,7 +137,6 @@ class Scorpio
   sayScoreCount: (from, to, limit, order) =>
     @dbCollection.find().count((err, results) =>
       msg = "Total number of scores: #{results}"
- s
       @bot.say(to, msg)
     )
 
@@ -303,6 +302,6 @@ bot = new Scorpio(
   search_limit: 75,
   irc_channel: '#coolkidsusa'
   app_name: 'heroku_app16378963',
-  app_secret: 'jPhv83pKUQXYSTpBkWaaHh9ppqd4GeKe',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
 )
