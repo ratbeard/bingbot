@@ -256,9 +256,8 @@ class Scorpio
 
         @findScores(from, to, order)
 
-      else if message.match /^points count/
-
-        @sayScoreCount(from, to);
+      else if message.match /^points count/ or message.match /^points total/
+        @sayScoreCount(from, to)
 
     # Something has gone wrong :(
     @bot.addListener 'error', (message) ->
@@ -303,7 +302,7 @@ bot = new Scorpio(
   bot_name: 'scorpio',
   search_limit: 75,
   irc_channel: '#coolkidsusa'
-  app_name: '<< YOUR HEROKU APP ID >>',
-  app_secret: '<< YOUR HEROKU APP SECRET>>',
+  app_name: 'heroku_app16378963',
+  app_secret: 'jPhv83pKUQXYSTpBkWaaHh9ppqd4GeKe',
   app_port: '31608'
 )
