@@ -135,11 +135,17 @@ class Scorpio
     
 
   sayScoreCount: (from, to, limit, order) =>
-    @dbCollection.find().count((err, results) =>
-      msg = "Total number of scores: #{results}"
-      @bot.say(to, msg)
-    )
+    pointsTotal = null
+    dbSize = null
 
+    @dbCollection.find().count((err, results) =>
+      pointsTotal = results
+      @dbCollection.stats((err, stats) =>
+        dbSize = (stats.size/1024)
+        msg = "Total number of scores: #{results}, database size: #{dbSize} Kb"
+        @bot.say(to, msg)
+      )
+    )
 
   sayScores: (from, to, limit, order) =>
     console.log "SAYING SCORES #{limit} #{order}"
