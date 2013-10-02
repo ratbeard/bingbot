@@ -142,7 +142,7 @@ class Scorpio
       pointsTotal = stats.count
       dbSize = stats.size
       console.log stats
-      msg = "Total number of scores: #{results}, database size: #{dbSize} Kb"
+      msg = "Total number of scores: #{pointsTotal}, database size: #{dbSize} Kb"
       @bot.say(to, msg)
     )
 
