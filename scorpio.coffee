@@ -138,14 +138,30 @@ class Scorpio
     pointsTotal = null
     dbSize = null
 
-    @dbCollection.find().count((err, results) =>
-      pointsTotal = results
-      @dbCollection.stats((err, stats) =>
-        dbSize = (stats.size/1024)
-        msg = "Total number of scores: #{results}, database size: #{dbSize} Kb"
-        @bot.say(to, msg)
-      )
+    @dbCollection.stats((err, stats) =>
+      pointsTotal = stats.count
+      dbSize = stats.size
+      console.log stats
+      msg = "Total number of scores: #{results}, database size: #{dbSize} Kb"
+      @bot.say(to, msg)
     )
+
+  sayAllTheScores : (from, to) =>
+    scoreMessage = null
+
+    @dbCollection.find().sort({$natural:-1}).toArray((err, results)  =>
+      scoreMessage = for scores, i in results
+        userScore = scores.points
+        userName = scores._user
+        "#{userName} has #{userScore} points"
+
+      scoreMessage = scoreMessage.join(", ")
+      @bot.say(to, scoreMessage)
+    )
+
+    #msg = msg.join(", ")
+
+    #@bot.say(to, msg)
 
   sayScores: (from, to, limit, order) =>
     console.log "SAYING SCORES #{limit} #{order}"
@@ -195,7 +211,9 @@ class Scorpio
   _connectBot: =>
     @bot = new irc.Client('irc.freenode.net', "#{@botName}",
       debug: true,
-      channels: @chatChannel
+      channels: @chatChannel,
+      floodProtection: true,
+      floodProtectionDelay: 500,
     )
 
     ## initialize the bot listeners
@@ -264,6 +282,9 @@ class Scorpio
       else if message.match(/^points (count|total)/)
         @sayScoreCount(from, to)
 
+      else if message.match(/^help scorpio/)
+        @sayAllTheScores(from, to)
+
     # Something has gone wrong :(
     @bot.addListener 'error', (message) ->
       @_handleError(message)
@@ -306,7 +327,7 @@ class Scorpio
 bot = new Scorpio(
   bot_name: 'scorpio',
   search_limit: 75,
-  irc_channel: '#coolkidsusa'
+  irc_channel: '#coolkidsusa',
   app_name: 'heroku_app16378963',
   app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
