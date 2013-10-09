@@ -238,6 +238,9 @@ class Scorpio
         if @_handleBingbot(user) == from and score > 0
           score = -100
 
+        ## handle mr_lucs failures as a #developer
+        if @_handleBingbot(from) == 'derpo' then return false
+
         @addScore(@_handleBingbot(user), score)
 
       else if match = message.match /^score (\S+)/
