@@ -85,12 +85,13 @@ class Scorpio
 
   findScores: (from, to, order) =>
 
+
     if order is 'ascending'
       orderBy = -1
     else
       orderBy = 1
 
-    @dbCollection.find().sort({ points: orderBy }).toArray((err, results) =>
+    @dbCollection.find().sort({ points: orderBy }).limit(1).toArray((err, results) =>
       user = results[0]
       userName = user._user
       userPoints = user.points
@@ -331,7 +332,7 @@ bot = new Scorpio(
   bot_name: 'scorpio',
   search_limit: 75,
   irc_channel: '#coolkidsusa'
-  app_name: '<< YOUR HEROKU APP ID >>',
-  app_secret: '<< YOUR HEROKU APP SECRET>>',
+  app_name: 'heroku_app16378963',
+  app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
-)
+)                     
