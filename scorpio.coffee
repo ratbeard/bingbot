@@ -155,11 +155,15 @@ class Scorpio
             @bot.say to, msg
 
             userReasons = userCallback.reasons
-            if limit is "random"
+            if limit is "random" or isNaN(limit)
 
-              randInt = (Math.floor(Math.random() * (userCallback.reasons.length - 0 + 1)) + 0);
-              reason = userCallback.reasons[randInt]
-              userReasons = "#{reason.points} points #{reason.reason}"
+              if userCallback.reasons.length <= 1
+                reason = userCallback.reasons[0]
+                userReasons = "#{reason.points} points #{reason.reason}"
+              else
+                randInt = (Math.floor(Math.random() * (userCallback.reasons.length - 0 + 1)) + 0);
+                reason = userCallback.reasons[randInt]
+                userReasons = "#{reason.points} points #{reason.reason}"
 
             else
               reasonMessage = for item, i in userReasons
