@@ -22,28 +22,54 @@ class Scorpio
     @_init()
 
   clearScores: =>
-    @dbCollection.remove( "points" : 0, (error, callback) =>
+    @dbCollection.remove( "total_score" : 0, (error, callback) =>
       if (error) then @_handleError(error)
     )
 
 
-  addUser: (user, value) =>
-    console.log "Adding user #{user} in the database"
-    @dbCollection.insert({"_user": user, "points": value }, (error, inserted) =>
-      if (error) then @_handleError(error)
+  addUser: (user, value, reason) =>
+    #  if we have a reason we need to add the user into the db with the reason
+    #  otherwise add the user with no reason. And an empty array
+    if reason 
+      console.log("adding user #{user} in the database. With a reason: #{reason}");
+      @dbCollection.insert({"_user" : user, "total_score" : value, "reasons":  [{ "reason" : reason, "points" : value }] }, (error, inserted) =>
+        if (error) then @_handleError(error)
+      )
+    else 
+      console.log "Adding user #{user} in the database"
+      @dbCollection.insert({"_user" : user, "total_score" : value, "reasons":  [] }, (error, inserted) =>
+        if (error) then @_handleError(error)
+      )   
+
+  setUserScoreWithReason: (user, value, newScore, reason) =>
+    console.log "SETTING NEW SCORE FOR #{user}, OLD SCORE: #{value}, NEW SCORE: #{newScore}"
+    console.log "ADDING REASON #{reason} TO SCORE"
+
+    ## Example Syntax:
+    ## pushes new data into the _user field
+    #db.users.update({"_user" : "omgomgomg"}, { $push: { "reasons" : { $each : [{"reason" : "you suck", "points" : 10 }] } } })
+    #update( {"_user": { "$regex": "^omgomgomg$", "$options": "-i"}}, {$push: { "reasons" : { $each : [{"reason" : "you suck", "points" : 10 }] } } })
+
+    @dbCollection.update( 
+      {"_user": { "$regex": "^#{user}$","$options": "-i"}}, 
+      {$push: { "reasons": { $each: [{"reason" : reason, "points" : value }] } } },
+      {$set: {"total_score": newScore}}, (error, cb)  =>
+        if (error) then @_handleError(error)
     )
+
 
   setUserScore: (user, currScore, newScore) =>
     console.log "SETTING NEW SCORE FOR #{user}, OLD SCORE: #{currScore}, NEW SCORE: #{newScore}"
-    @dbCollection.update("_user": { "$regex": "^#{user}$", "$options": "-i" },{$set: {"points": newScore}}, (error, cb) =>
+    @dbCollection.update("_user": { "$regex": "^#{user}$", "$options": "-i" },{$set: {"total_score": newScore}}, (error, cb) =>
       if (error) then @_handleError(error)
     )
 
-  findUserScore: (user, value) =>
+  findUserScore: (user, value, reason) =>
     console.log "user #{user} exists in the db"
 
     val = parseInt(value)
     currScore = null
+    userReason = null
     newScore = null
 
     @dbCollection.findOne("_user":{ $regex: "^#{user}$", "$options": "-i" }, (error, userCallback) =>
@@ -52,14 +78,19 @@ class Scorpio
         @_handleError(error)
       else
         #we need to get the value of user_field and update it
-        console.log "WE FOUND USER #{user} DATA: #{userCallback}"
-        if (userCallback.points)
-          currScore = userCallback.points
+        console.log "WE FOUND USER #{user} DATA: #{val}"
+        if (userCallback.total_score)
+          currScore = userCallback.total_score
           newScore = (currScore += value)
-          @setUserScore(user, currScore, newScore)
+          # check for if the user currently has reasons
+          if (reason)
+            console.log "USER HAS #{userCallback.reasons.length} REASONS FOR POINTS"
+            @setUserScoreWithReason(user, val, newScore, reason)
+          else
+            @setUserScore(user, currScore, newScore)
     )
 
-  addScore: (user, value) =>
+  addScore: (user, value, reason) =>
     userData = user
     console.log "ADDING SCORE FOR #{user}"
 
@@ -77,15 +108,13 @@ class Scorpio
     @dbCollection.findOne( "_user": { $regex: "^#{userData}$", "$options": "-i"}, (error, userCallback) =>
       if userCallback is null
         # if user doesnt exist in the db add them
-        @addUser(userData, value)
+        @addUser(userData, value, reason)
       else
         # else if user exists in the db update their score with the new int
-        @findUserScore(userData, value)
+        @findUserScore(userData, value, reason)
     )
 
   findScores: (from, to, order) =>
-
-
     if order is 'ascending'
       orderBy = -1
     else
@@ -94,7 +123,7 @@ class Scorpio
     @dbCollection.find().sort({ points: orderBy }).limit(1).toArray((err, results) =>
       user = results[0]
       userName = user._user
-      userPoints = user.points
+      userPoints = user.total_score
 
       if order is 'ascending'
         msg = "#{userName} is the leader with #{userPoints} points"
@@ -104,6 +133,54 @@ class Scorpio
       @bot.say(to, msg)
     )
 
+  sayScoreWithReasons: (from, to, user, limit) =>
+
+    @dbCollection.findOne("_user": { $regex: "^#{user}$", "$options": "-i" }, (error, userCallback) =>
+      if (error)
+        @_handleError(error)
+      else
+        if (!userCallback)
+          # if the user doesnt exist we cant tell any scores
+          msg = "#{user} has no points"
+          @bot.say to, msg
+          return
+        if (userCallback.total_score)
+          # if the user has score we can print the score
+
+          # find the reasons for the user if they exist, 
+          # otherwise dont spit out any reasons
+          if (userCallback.reasons.length)
+            score = userCallback.total_score
+            msg = "#{user} has #{score} points"
+            @bot.say to, msg
+
+            userReasons = userCallback.reasons
+            if limit is "random"
+
+              randInt = (Math.floor(Math.random() * (userCallback.reasons.length - 0 + 1)) + 0);
+              reason = userCallback.reasons[randInt]
+              userReasons = "#{reason.points} points #{reason.reason}"
+
+            else
+              reasonMessage = for item, i in userReasons
+                ## do not pass our limit specified
+                if i >= limit or i >= 10 then break
+                "#{item.points} points #{item.reason}"
+
+              userReasons = reasonMessage.join(", ")
+
+            @bot.say to, userReasons
+              
+          else 
+            score = userCallback.total_score
+            msg = "#{user} has #{score} points"
+            @bot.say to, msg
+        else
+          msg = "#{user} has no points"
+          @bot.say to, msg
+    )
+
+    
 
   sayScore: (from, to, user) =>
     @dbCollection.findOne("_user": { $regex: "^#{user}$", "$options": "-i" }, (error, userCallback) =>
@@ -115,9 +192,9 @@ class Scorpio
           msg = "#{user} has no points"
           @bot.say to, msg
           return
-        if (userCallback.points)
+        if (userCallback.total_score)
           # if the user has score we can print the score
-          score = userCallback.points
+          score = userCallback.total_score
           msg = "#{user} has #{score} points"
           @bot.say to, msg
         else
@@ -152,7 +229,7 @@ class Scorpio
 
     @dbCollection.find().sort({$natural:-1}).toArray((err, results)  =>
       scoreMessage = for scores, i in results
-        userScore = scores.points
+        userScore = scores.total_score
         userName = scores._user
         "#{userName} has #{userScore} points"
 
@@ -178,7 +255,7 @@ class Scorpio
       if order is 'ascending' then orderBy = -1 else orderBy = 1
       @dbCollection.find().limit(limitBy).sort({ points: orderBy }).toArray((err, results)  =>
         msg = for scores in results
-          userScore = scores.points
+          userScore = scores.total_score
           userName = scores._user
           "#{userName} has #{userScore} points"
 
@@ -196,7 +273,7 @@ class Scorpio
 
       @dbCollection.find().limit(limitBy).sort({$natural:-1}).toArray((err, results)  =>
         msg = for scores in results
-          userScore = scores.points
+          userScore = scores.total_score
           userName = scores._user
           "#{userName} has #{userScore} points"
 
@@ -232,7 +309,20 @@ class Scorpio
       #console.log('%s => %s: %s', from, to, message)
       @clearScores()
 
-      if match = message.match(/([+-]\d+)\s+(\S+)/)
+      if match = message.match(/([+-]\d+)\s+(\S+)\s+(for(.*))/)
+        [_, score, user, reason] = match
+        score = parseInt(score)
+        reason_result = reason.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_')
+
+        if @_handleBingbot(user) == from and score > 0
+          score = -100
+
+        ## handle mr_lucs failures as a #developer
+        if @_handleBingbot(from) == 'derpo' then return false
+
+        @addScore(@_handleBingbot(user), score, reason_result)
+
+      else if match = message.match(/([+-]\d+)\s+(\S+)/)
         [_, score, user] = match
         score = parseInt(score)
 
@@ -244,11 +334,25 @@ class Scorpio
 
         @addScore(@_handleBingbot(user), score)
 
+      else if match = message.match /^score (\S+) -r (\d+)/
+        console.log 'GIMME A LIST OF REASONS (up to 20)'
+
+        user = match[1]
+        limit = match[2]
+        @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)     
+        
+      else if match = message.match /^score (\S+) -r/
+        console.log 'RANDOMIZE REASON'
+        limit = 'random'
+        user = match[1]
+
+        @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)     
+        
       else if match = message.match /^score (\S+)/
 
         user = match[1]
         
-        @sayScore(from, to, @_handleBingbot(user))
+        @sayScore(from, to, @_handleBingbot(user))    
       
       else if match = message.match /^whats the score (\S+) (\d+) (\S+)/
 
@@ -331,7 +435,7 @@ class Scorpio
 bot = new Scorpio(
   bot_name: 'scorpio',
   search_limit: 75,
-  irc_channel: '#coolkidsusa'
+  irc_channel: '#kanyeszone'
   app_name: 'heroku_app16378963',
   app_secret: 's8en8qk8u2jnhg31to2v7o4fq0@ds031608',
   app_port: '31608'
