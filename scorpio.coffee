@@ -18,7 +18,7 @@ class Scorpio
     @dbCollection     = null
     @databasePort     = @options.app_port
 
-    # inti the new scorpio!
+    # init the new scorpio!
     @_init()
 
   clearScores: =>
