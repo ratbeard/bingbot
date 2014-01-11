@@ -8,6 +8,10 @@ extend = (target, src) ->
 	for k, v of src
 		target[k] = v
 		
+#
+# Bot loading
+#
+
 # Reload the bots
 reload = ->
 	console.log 'Reloading!'
@@ -31,6 +35,9 @@ loadBot = (name) ->
 availableBotNames = ->
 	fs.readdirSync "./bots"
 
+#
 # Init
+#
 loadBots()
 extend(repl.context, {reload})
+
