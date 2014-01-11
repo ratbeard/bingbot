@@ -21,4 +21,5 @@ class Chatroom
 		console.error "fuk:", error
 
 
-exports = Chatroom
+module.exports = Chatroom
+

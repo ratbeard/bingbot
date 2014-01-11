@@ -1,4 +1,5 @@
 fs = require('fs')
+path = require('path')
 repl = require('repl').start({})
 Chatroom = require('./chatroom')
 
@@ -40,7 +41,7 @@ loadBot = (name) ->
 	repl.context.d = bot if name == 'dogshitbot'
 
 availableBotNames = ->
-	fs.readdirSync "./bots"
+	fs.readdirSync(path.join(__dirname, "bots"))
 
 #
 # Master bot connection
@@ -50,7 +51,8 @@ connectToChatroom = ->
 		server: "irc.freenode.net"
 		channel: "coolkidsusa"
 		user: "masterbot"
-	chatroom = new Chatroom(ircConfig)
+	console.log Chatroom
+	#chatroom = new Chatroom(ircConfig)
 
 
 #
