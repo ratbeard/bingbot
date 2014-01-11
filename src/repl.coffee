@@ -1,3 +1,5 @@
+fs = require('fs')
+
 # Reloading modules from the repl in Node.js
 # Benjamin Gleitzman (gleitz@mit.edu)
 #
@@ -12,24 +14,22 @@
 #
 # I suggest using an alias in your .bashrc/.profile:
 # alias node_reload='node /path/to/reload.js'
-myrepl = require("repl").start({})
+repl = require("repl").start({})
 
 ###
 Removes a module from the cache.
 ###
-myrepl.context.require.uncache = (moduleName) ->
+repl.context.require.uncache = (moduleName) ->
   
   # Run over the cache looking for the files
   # loaded by the specified module name
-  myrepl.context.require.searchCache moduleName, (mod) ->
+  repl.context.require.searchCache moduleName, (mod) ->
     delete require.cache[mod.id]
-
-
 
 ###
 Runs over the cache to search for all the cached files.
 ###
-myrepl.context.require.searchCache = (moduleName, callback) ->
+repl.context.require.searchCache = (moduleName, callback) ->
   
   # Resolve the module identified by the specified name
   mod = require.resolve(moduleName)
@@ -56,6 +56,46 @@ myrepl.context.require.searchCache = (moduleName, callback) ->
 #
 # * Load a module, clearing it from the cache if necessary.
 # 
-myrepl.context.require.reload = (moduleName) ->
-  myrepl.context.require.uncache moduleName
-  myrepl.context.require moduleName
+repl.context.require.reload = (moduleName) ->
+  repl.context.require.uncache moduleName
+  repl.context.require moduleName
+
+repl.context.reload = (bot=null) ->
+	console.log 'Reloading!'
+	clearRequireCache()
+	botsToReload = if bot then [bot] else connectedBots()
+	for bot in botsToReload
+		loadBot(bot)
+
+clearRequireCache = ->
+	require.cache = {}
+
+repl.context.bots = {}
+
+loadBot = (name) ->
+	botDelegate = new BotDelegate(name)
+	botDelegate.bot = require("../bots/#{name}/bot.coffee")
+	repl.context.bots[name] = botDelegate
+	repl.context[name] = botDelegate
+	repl.context.d = botDelegate if name == 'dogshitbot'
+
+connectedBots = ->
+	[]
+
+findBots = ->
+	fs.readdir("../bots", (err, botNames) ->
+		throw err if err
+		loadBot(name) for name in botNames
+	)
+
+# init
+findBots()
+
+class BotDelegate
+	constructor: (@name) ->
+	join: ->
+		console.log 'join'
+	kick: ->
+		console.log 'kick'
+	reload: ->
+		loadBot(@)
