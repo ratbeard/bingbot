@@ -1,15 +1,16 @@
 Development setup instructions (OSX):
 
-		$ smack shaq
+
+		npm install
 
 
 
 scratchpad
 =======
-
-
-since I'm building out the repl now i setup so it'll reload the process as I make changes:
+To run the repl and have it reload on file change:
 
 		npm install -g nodemon
-		cd src
-		nodemon repl.coffee
+		nodemon src/repl.coffee
+
+To add a package and save to package.json:
+		npm install underscore --save   (or --save-dev)
