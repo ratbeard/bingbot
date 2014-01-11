@@ -1,5 +1,6 @@
 fs = require('fs')
 repl = require('repl').start({})
+Chatroom = require('./chatroom')
 
 #
 # Utils
@@ -8,6 +9,12 @@ extend = (target, src) ->
 	for k, v of src
 		target[k] = v
 		
+#
+# State
+#
+chatroom = null
+
+
 #
 # Bot loading
 #
@@ -36,8 +43,20 @@ availableBotNames = ->
 	fs.readdirSync "./bots"
 
 #
+# Master bot connection
+#
+connectToChatroom = ->
+	ircConfig =
+		server: "irc.freenode.net"
+		channel: "coolkidsusa"
+		user: "masterbot"
+	chatroom = new Chatroom(ircConfig)
+
+
+#
 # Init
 #
+connectToChatroom()
 loadBots()
 extend(repl.context, {reload})
 
