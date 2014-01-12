@@ -108,8 +108,6 @@ class Scorpio
 
   sayAllTheScores : (from, to) =>
     scoreMessage = null
-
-
     #msg = msg.join(", ")
 
     #@bot.say(to, msg)
@@ -200,20 +198,20 @@ class Scorpio
 
         user = match[1]
         limit = match[2]
-        @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)     
+        @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)
         
       else if match = message.match /^score (\S+) -r/
         console.log 'RANDOMIZE REASON'
         limit = 'random'
         user = match[1]
 
-        @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)     
+        @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)
         
       else if match = message.match /^score (\S+)/
 
         user = match[1]
         
-        @sayScore(from, to, @_handleBingbot(user))    
+        @sayScore(from, to, @_handleBingbot(user))
       
       else if match = message.match /^whats the score (\S+) (\d+) (\S+)/
 
@@ -265,7 +263,6 @@ class Scorpio
       key: '3ea910de3b4179ff0d0e',
       secret: 'a946198efebd0b12a81d'
     })
-    
 
   _connectDb: =>
     @_connectBot()
