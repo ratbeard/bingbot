@@ -29,14 +29,18 @@ class Bot
 
 	reload: ->
 		clearRequireCache()
-		@loadBehavior()
+		@load()
 
-	loadBehavior: ->
+	load: ->
 		klass = require("./bots/#{@name}/bot.coffee")
 		@behavior = new klass()
 		# Inject services
-		@behavior.say = (messageText) =>
-			@connection.say(messageText)
+		dependencies = ['say'].concat(klass.dependencies ? [])
+		for dependency in dependencies
+			@behavior[dependency] = @getDependency(dependency)(@)
+
+	getDependency: (name) ->
+		require("./services/#{name}.coffee")
 
 	processMessage: (messageText) ->
 		@behavior.processMessage(messageText)

@@ -16,10 +16,21 @@ class Session
 	start: ->
 		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"
 		@startRepl()
-		@expose('sesh', @)
+		@exposeReplProperties()
 		@loadBots()
 		@connectMasterbot()
 		@startLaunchBots()
+		#@bots.dogshitbot.load()
+
+	exposeReplProperties: ->
+		@expose('sesh', @)
+		@exposeGetter("bots", =>
+			console.log("\nBots:")
+			for name, bot of @bots
+				status = bot.isConnected && "*" || " "
+				console.log(" (%s)  %s", status, name)
+			console.log("")
+		)
 
 	startLaunchBots: ->
 		for name in @config.launchBots ? []
@@ -27,6 +38,7 @@ class Session
 			@bots[name].connect()
 
 	connectMasterbot: ->
+		console.log "launching masterbot..."
 		@masterbot.connect(@config)
 		@masterbot.onMessage = (user, room, messageText) =>
 			for name, bot of @bots
@@ -56,6 +68,10 @@ class Session
 
 	expose: (name, value) ->
 		@repl.context[name] = value
+
+	exposeGetter: (name, value) ->
+		Object.defineProperty(@repl.context, name, get: value)
+
 		
 
 sesh = new Session()

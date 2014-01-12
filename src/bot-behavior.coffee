@@ -5,6 +5,9 @@ class BotBehavior
 		@matchers ?= []
 		@matchers.push(matcher)
 
+	@use = (dependencies...) ->
+		@dependencies = dependencies
+
 	matchers: ->
 		@constructor.matchers
 
@@ -14,7 +17,4 @@ class BotBehavior
 			{handler, pattern} = matcher
 			if match = pattern.exec(messageText)
 				handler.call(@, match)
-
-	inject: (name, service) ->
-		@[name] = service
 
