@@ -1,3 +1,5 @@
+Bots
+====
 Development setup instructions (OSX):
 
 		npm install
@@ -14,6 +16,16 @@ Useful commands inside repl:
 		dogshitbot.disconnect()
 		dogshitbot.say("sup guys")
 		dogshitbot.reload()   				// reloads behavior, stays connected in channel
+
+
+To generate a bot:
+
+		# one time setup
+		cd generators/generator-bot
+		npm link 
+		cd ../..
+
+		yo bot coolbot
 
 
 scratchpad
