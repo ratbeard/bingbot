@@ -1,1 +1,1 @@
-worker: coffee src/bots/scorpio/bot.coffee
+web: coffee src/bots/scorpio/bot.coffee
