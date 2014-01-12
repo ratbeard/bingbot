@@ -3,6 +3,39 @@ path = require('path')
 repl = require('repl').start({})
 chat = require('./irc-connection')
 
+
+class Bot
+	constructor: (@name, @ircConfig) ->
+		@connection = null
+		@behavior = null
+		@isConnected = false
+
+	connect: () ->
+		@reload()
+		@connection = new chat.Connection(@name)
+		@connection.connect(@ircConfig)
+		@isConnected = true
+
+	disconnect: ->
+		@isConnected = true
+		@connection.disconnect()
+
+	reload: ->
+		clearRequireCache()
+		@loadBehavior()
+
+	loadBehavior: ->
+		klass = require("./bots/#{@name}/bot.coffee")
+		@behavior = new klass()
+		# inject
+		@behavior.say = (messageText) =>
+			@connection.say(messageText)
+
+	say: (messageText) ->
+		@behavior.say(messageText)
+
+	processMessage: (messageText) ->
+		@behavior.processMessage(messageText)
 #
 # Utils
 #
@@ -15,7 +48,7 @@ extend = (target, src) ->
 #
 botNames = null
 ircConfig = null
-
+bots = {}
 
 #
 # Bot loading
@@ -28,32 +61,28 @@ reload = ->
 	loadBots()
 
 clearRequireCache = ->
-	require.cache = {}
+	for k, v of require.cache
+		require.cache[k]
+	for k, v of repl.context.require.cache
+		delete repl.context.require.cache[k]
 
 loadBots = ->
 	botNames = fs.readdirSync(path.join(__dirname, "bots"))
 	for name in botNames
-		#loadBot(name)
 		ircConfig =
 			server: "irc.freenode.net"
 			channel: "coolkidsusa"
-		bot = new chat.Bot(name, ircConfig)
+		bot = new Bot(name, ircConfig)
+		bots[name] = bot
 		repl.context[name] = bot
-		repl.context.d = bot if name == 'dogshitbot'
-	repl.context.bots = botNames
+		repl.context.d = bot if name == 'dogshitbot' # dev helper
 
-loadBot = (name) ->
-	bot = require("./bots/#{name}/bot.coffee")
-	repl.context[name] = bot
-	# dev helper
-	repl.context.d = bot if name == 'dogshitbot'
+	repl.context.botNames = botNames
+
 
 #
 # Master bot connection
 #
-connectToChatroom = ->
-	console.log Chatroom
-	#chatroom = new Chatroom(ircConfig)
 
 
 #
@@ -69,12 +98,16 @@ ircConfig =
 	channel: "coolkidsusa"
 
 
-messageQueue = new chat.MessageQueue
+queue = new chat.MessageQueue
 masterListener = new chat.Listener("masterbot")
 masterListener.connect(ircConfig)
-masterListener.onMessage = (user, room, said) ->
-	console.log 'i heard dat'
-	if match = /summon ([^\s]+)/.exec(said)
+masterListener.onMessage = (user, room, messageText) ->
+
+	for name, bot of bots
+		continue unless bot.isConnected
+		bot.processMessage(messageText)
+
+	if match = /summon ([^\s]+)/.exec(messageText)
 		botName = match[1]
 		bot = repl.context[botName]
 		console.log "summonning bot: #{botName}"
@@ -86,8 +119,10 @@ masterListener.onMessage = (user, room, said) ->
 			console.log "already connected fool"
 		else
 			bot.connect()
-masterListener
+
 
 repl.context.m = masterListener
+repl.context.clear = clearRequireCache
+
 
 

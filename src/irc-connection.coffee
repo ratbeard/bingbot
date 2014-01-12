@@ -6,10 +6,11 @@ class Connection
 	connect: (ircConfig) ->
 		@server = ircConfig.server
 		@channel = ircConfig.channel
+		@channel = "#" + @channel unless @channel[0] == '#'
 		throw "bad ircConfig: #{ircConfig}" unless @server? && @channel?
 		@irc = new irc.Client(@server, @name,
 			debug: true
-			channels: ["##{@channel}"]
+			channels: [@channel]
 		)
 		@irc.addListener("error", (error) =>
 			@onError(error)
@@ -61,27 +62,6 @@ class MessageQueue
 		bot.connection.say(messageText)
 
 
-class Bot
-	constructor: (@name, @ircConfig) ->
-		@connection = null
-		@behavior = null
-		@isConnected = false
-
-	connect: () ->
-		@isConnected = true
-		@connection = new Connection(@name)
-		@connection.connect(@ircConfig)
-
-	disconnect: ->
-		@isConnected = true
-		@connection.disconnect()
-
-	reload: ->
-
-	say: (messageText) ->
-		@connection.say(messageText)
-
-
 		
-module.exports = {Connection, Listener, Responder, MessageQueue, Bot}
+module.exports = {Connection, Listener, Responder, MessageQueue}
 
