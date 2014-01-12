@@ -1,128 +1,97 @@
 fs = require('fs')
 path = require('path')
-repl = require('repl').start({})
-chat = require('./irc-connection')
+repl = require('repl')
 
-
-class Bot
-	constructor: (@name, @ircConfig) ->
-		@connection = null
-		@behavior = null
-		@isConnected = false
-
-	connect: () ->
-		@reload()
-		@connection = new chat.Connection(@name)
-		@connection.connect(@ircConfig)
-		@isConnected = true
-
-	disconnect: ->
-		@isConnected = true
-		@connection.disconnect()
-
-	reload: ->
-		clearRequireCache()
-		@loadBehavior()
-
-	loadBehavior: ->
-		klass = require("./bots/#{@name}/bot.coffee")
-		@behavior = new klass()
-		# inject
-		@behavior.say = (messageText) =>
-			@connection.say(messageText)
-
-	say: (messageText) ->
-		@behavior.say(messageText)
-
-	processMessage: (messageText) ->
-		@behavior.processMessage(messageText)
-#
-# Utils
-#
-extend = (target, src) ->
-	for k, v of src
-		target[k] = v
+# Ours
+Connection = require('./irc-connection')
+Bot = require('./bot')
 		
-#
-# State
-#
-botNames = null
-ircConfig = null
-bots = {}
+class Session
+	constructor: ->
+		@bots = {}
+		@repl = null
+		@config = @readConfig()
+		@masterbot = new Connection("masterbot")
 
-#
-# Bot loading
-#
+	start: ->
+		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"
+		@startRepl()
+		@exposeReplProperties()
+		@loadBots()
+		@connectMasterbot()
+		@startLaunchBots()
+		#@bots.dogshitbot.load()
 
-# Reload the bots
-reload = ->
-	console.log 'Reloading!'
-	clearRequireCache()
-	loadBots()
+	exposeReplProperties: ->
+		@expose('sesh', @)
+		@exposeGetter("bots", =>
+			console.log("\nBots:")
+			for name, bot of @bots
+				status = bot.isConnected && "*" || " "
+				console.log(" (%s)  %s", status, name)
+			console.log("")
+		)
 
-clearRequireCache = ->
-	for k, v of require.cache
-		require.cache[k]
-	for k, v of repl.context.require.cache
-		delete repl.context.require.cache[k]
+	startLaunchBots: ->
+		for name in @config.launchBots ? []
+			console.log "launching #{name}..."
+			@bots[name].connect()
 
-loadBots = ->
-	botNames = fs.readdirSync(path.join(__dirname, "bots"))
-	for name in botNames
-		ircConfig =
+	connectMasterbot: ->
+		console.log "launching masterbot..."
+		@masterbot.connect(@config)
+		@masterbot.onMessage = (user, room, messageText) =>
+			for name, bot of @bots
+				continue if !bot.isConnected || bot.isDisabled
+				bot.processMessage(messageText)
+
+	readConfig: ->
+		{
 			server: "irc.freenode.net"
 			channel: "coolkidsusa"
-		bot = new Bot(name, ircConfig)
-		bots[name] = bot
-		repl.context[name] = bot
-		repl.context.d = bot if name == 'dogshitbot' # dev helper
+			launchBots: ['dogshitbot']
+		}
 
-	repl.context.botNames = botNames
+	availableBots: ->
+		fs.readdirSync(path.join(__dirname, "bots"))
 
+	loadBots: () ->
+		ircConfig = @readConfig()
+		for name in @availableBots()
+			bot = new Bot(name, ircConfig)
+			@bots[name] = bot
+			@expose(name, bot)
+			@expose('d', bot) if name == 'dogshitbot' # dev helper
+		
+	startRepl: ->
+		@repl = repl.start({})
 
-#
-# Master bot connection
-#
+	expose: (name, value) ->
+		@repl.context[name] = value
 
+	exposeGetter: (name, value) ->
+		Object.defineProperty(@repl.context, name, get: value)
 
-#
-# Init
-#
+		
 
-#connectToChatroom()
-loadBots()
-extend(repl.context, {reload})
+sesh = new Session()
+sesh.start()
 
-ircConfig =
-	server: "irc.freenode.net"
-	channel: "coolkidsusa"
+#masterListener.onMessage = (user, room, messageText) ->
+	#for name, bot of bots
+		#continue unless bot.isConnected
+		#bot.processMessage(messageText)
 
-
-queue = new chat.MessageQueue
-masterListener = new chat.Listener("masterbot")
-masterListener.connect(ircConfig)
-masterListener.onMessage = (user, room, messageText) ->
-
-	for name, bot of bots
-		continue unless bot.isConnected
-		bot.processMessage(messageText)
-
-	if match = /summon ([^\s]+)/.exec(messageText)
-		botName = match[1]
-		bot = repl.context[botName]
-		console.log "summonning bot: #{botName}"
-		if !bot
-			console.error "no bot named"
-		else if !bot.connect
-			console.error "umm that aint a bot"
-		else if bot.isConnected
-			console.log "already connected fool"
-		else
-			bot.connect()
-
-
-repl.context.m = masterListener
-repl.context.clear = clearRequireCache
-
-
+	#if match = /summon ([^\s]+)/.exec(messageText)
+		#botName = match[1]
+		#bot = repl.context[botName]
+		#console.log "summonning bot: #{botName}"
+		#if !bot
+			#console.error "no bot named"
+		#else if !bot.connect
+			#console.error "umm that aint a bot"
+		#else if bot.isConnected
+			#console.log "already connected fool"
+		#else
+			#bot.connect()
 

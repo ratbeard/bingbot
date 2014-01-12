@@ -1,13 +1,15 @@
 irc = require('irc')
 
+module.exports =
 class Connection
 	constructor: (@name) ->
 
 	connect: (ircConfig) ->
-		@server = ircConfig.server
-		@channel = ircConfig.channel
-		@channel = "#" + @channel unless @channel[0] == '#'
-		throw "bad ircConfig: #{ircConfig}" unless @server? && @channel?
+		{server, channel} = ircConfig
+		throw "bad ircConfig: #{ircConfig}" unless server? && channel?
+		channel = "#" + channel unless channel[0] == '#'
+		@server = server
+		@channel = channel
 		@irc = new irc.Client(@server, @name,
 			debug: true
 			channels: [@channel]
@@ -30,38 +32,4 @@ class Connection
 
 	say: (messageText) ->
 		@irc.say(@channel, messageText)
-
-
-class Listener extends Connection
-	constructor: (@name, @queue) ->
-		super
-
-	onMessage: (user, room, said) ->
-		console.log "> #{user}: #{said}'"
-
-
-
-class Responder
-	constructor: (ircConfig) ->
-		@chatroom = new IrcConnection(ircConfig)
-
-	say: (messageText) ->
-		@chatroom.say(messageText)
-
-class MessageQueue
-	constructor: ->
-
-	addIncomingMessage: (message) ->
-		for bot in connectedBots when !bot.isDisabled
-			bot.processMessage(message)
-
-	addOutgoingMessage: (bot, messageText) ->
-		if bot.isDisabled
-			return console.log "DENIED", messageText
-
-		bot.connection.say(messageText)
-
-
-		
-module.exports = {Connection, Listener, Responder, MessageQueue}
 

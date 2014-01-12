@@ -1,8 +1,19 @@
 Development setup instructions (OSX):
 
-
 		npm install
 
+Running the bot repl:
+
+		coffee src/repl.coffee
+
+Useful commands inside repl:
+
+		bots
+
+		dogshitbot.connect()
+		dogshitbot.disconnect()
+		dogshitbot.say("sup guys")
+		dogshitbot.reload()   				// reloads behavior, stays connected in channel
 
 
 scratchpad
