@@ -49,7 +49,7 @@ class Session
 		{
 			server: "irc.freenode.net"
 			channel: "coolkidsusa"
-			launchBots: ['dogshitbot']
+			launchBots: ['bingbot']
 		}
 
 	availableBots: ->

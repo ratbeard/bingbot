@@ -12,7 +12,9 @@
   "dependencies": {
     "irc": "~0.3.6",
     "underscore": "~1.5.2",
-    "underscore.string": "~2.3.3"
+    "underscore.string": "~2.3.3",
+    "request": "~2.31.0",
+    "cheerio": "~0.13.1"
   },
   "devDependencies": {
     "nodemon": "~1.0.8"

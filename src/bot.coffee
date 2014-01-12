@@ -35,6 +35,7 @@ class Bot
 		klass = require("./bots/#{@name}/bot.coffee")
 		@behavior = new klass()
 		# Inject services
+		@behavior.api = require("./bots/#{@name}/api.coffee")
 		dependencies = ['say'].concat(klass.dependencies ? [])
 		for dependency in dependencies
 			@behavior[dependency] = @getDependency(dependency)(@)
