@@ -10,6 +10,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "coffee-script" : "~1.6.3",
     "irc": "~0.3.6",
     "underscore": "~1.5.2",
     "underscore.string": "~2.3.3"
