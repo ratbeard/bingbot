@@ -25,6 +25,7 @@ class Session
 	exposeReplProperties: ->
 		@expose('sesh', @)
 		@exposeGetter("bots", =>
+			@loadBots()
 			console.log("\nBots:")
 			for name, bot of @bots
 				status = bot.isConnected && "*" || " "
@@ -58,6 +59,7 @@ class Session
 	loadBots: () ->
 		ircConfig = @readConfig()
 		for name in @availableBots()
+			continue if @bots[name]
 			bot = new Bot(name, ircConfig)
 			@bots[name] = bot
 			@expose(name, bot)

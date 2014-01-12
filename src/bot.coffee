@@ -4,6 +4,7 @@
 # repl, each bot gets its own instance variable which can command.
 #
 Connection = require('./irc-connection')
+injector = require('./injector')
 
 # Just clear the whole cache for now
 clearRequireCache = ->
@@ -32,16 +33,7 @@ class Bot
 		@load()
 
 	load: ->
-		klass = require("./bots/#{@name}/bot.coffee")
-		@behavior = new klass()
-		# Inject services
-		@behavior.api = require("./bots/#{@name}/api.coffee")
-		dependencies = ['say'].concat(klass.dependencies ? [])
-		for dependency in dependencies
-			@behavior[dependency] = @getDependency(dependency)(@)
-
-	getDependency: (name) ->
-		require("./services/#{name}.coffee")
+		injector.buildBotBehavior(@)
 
 	processMessage: (messageText) ->
 		@behavior.processMessage(messageText)
