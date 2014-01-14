@@ -90,7 +90,12 @@ class Session
 		jsonText = fs.readFileSync(configFilePath)
 		json = JSON.parse(jsonText)
 		environmentName = @getEnvironmentName()
-		_.extend(json.default, json[environmentName])
+		environmentConfig = json[environmentName]
+		if environmentName && !environmentConfig
+			console.error("""Hey I didn't see any config for '#{environmentName}' in #{configFilePath}.
+											 Only saw: #{Object.keys(json).join(' ')}""")
+			throw "TRY BETTER NEXT TIME"
+		_.extend(json.default, environmentConfig)
 
 	availableBots: ->
 		fs.readdirSync(path.join(__dirname, "bots"))
