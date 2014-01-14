@@ -55,7 +55,6 @@ class Session
 				bot.processMessage(messageText)
 
 	getEnvironmentName: ->
-		console.log 'e', argv.env
 		argv.env
 
 	readConfig: ->
