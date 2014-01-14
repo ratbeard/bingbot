@@ -1,11 +1,19 @@
 fs = require('fs')
 path = require('path')
 repl = require('repl')
+_ = require('underscore')
+argv = require('optimist')
+	.usage('-e dev')
+	.alias('e', 'env')
+	.describe('e', 'Set an environment, whose settings in ~/.bingbot/config.json will be merged into the defaults')
+	.default('env', "default")
+	.argv
 
 # Ours
 Connection = require('./irc-connection')
 Bot = require('./bot')
 		
+
 class Session
 	constructor: ->
 		@bots = {}
@@ -29,7 +37,7 @@ class Session
 			console.log("\nBots:")
 			for name, bot of @bots
 				status = bot.isConnected && "*" || " "
-				console.log(" (%s)  %s", status, name)
+				console.log(" (%s)	%s", status, name)
 			console.log("")
 		)
 
@@ -46,12 +54,44 @@ class Session
 				continue if !bot.isConnected || bot.isDisabled
 				bot.processMessage(messageText)
 
+	getEnvironmentName: ->
+		console.log 'e', argv.env
+		argv.env
+
 	readConfig: ->
-		{
-			server: "irc.freenode.net"
-			channel: "coolkidsusa"
-			launchBots: ['bingbot']
-		}
+		configDirPath = path.join(process.env.HOME, ".bingbot")
+		configFilePath = path.join(configDirPath, "config.json")
+		doesConfigDirExist = fs.existsSync(configDirPath)
+		if !doesConfigDirExist
+			console.log("""You didn't have a config file at '#{configFilePath}', so I created on for you.
+
+				ヽ༼ຈل͜ຈ༽ﾉ sorry ...
+
+				By default, just the settings in "default" are loaded.  
+				You can run me with '-e dev' to merge the settings in from "dev" as well.
+			""")
+			fs.mkdirSync(configDirPath)
+
+		if !fs.existsSync(configFilePath)
+			console.log("Copying in a default config file to '#{configFilePath}'") if doesConfigDirExist
+			fs.writeFileSync(configFilePath, """
+				{
+					"default": {
+						"server": "irc.freenode.net",
+						"channel": "coolkidsusa",
+						"launchBots": ["bingbot"]
+					},
+					"dev": {
+						"channel": "junkyard",
+						"launchBots": ["bingbot", "jarjarmuppet"]
+					}
+				}
+			""")
+
+		jsonText = fs.readFileSync(configFilePath)
+		json = JSON.parse(jsonText)
+		environmentName = @getEnvironmentName()
+		_.extend(json.default, json[environmentName])
 
 	availableBots: ->
 		fs.readdirSync(path.join(__dirname, "bots"))
