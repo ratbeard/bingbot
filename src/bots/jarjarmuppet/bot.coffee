@@ -2,8 +2,12 @@ module.exports = (bot, random) ->
 	maxTimeBetweenGiberishInMinutes = 120
 
 	bot.match(/hey/, (match) ->
-		bot.say "hey yerself"
+		bot.say "ey yerself"
 	)
+	bot.match(/rand/, (match) ->
+		bot.say random(100)
+	)
+
 	bot.match(//, ->
 		sayGiberishLater() unless @isWaitingToSpeak
 	)
@@ -25,15 +29,10 @@ if require.main == module
 	injector = require('../../injector')
 	#bot = injector.botBehavior({name: 'jarjarmuppet'})
 	uninjectedBehavior = module.exports
-	#registry = new Registry()
-	#testBotService = ->
-		#{
-			#say: console.log
-			#match: ->
-		#}
-
-	#registry.add('bot', testBotService)
-	behavior = injector.inject(uninjectedBehavior)
+	testServices = {
+		say: console.log
+	}
+	behavior = injector.inject(uninjectedBehavior, testServices)
 	behavior.onMessage('hey')
 
 

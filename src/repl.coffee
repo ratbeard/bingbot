@@ -28,7 +28,15 @@ class Session
 		@loadBots()
 		@connectMasterbot()
 		@startLaunchBots()
-		#@bots.dogshitbot.load()
+		@startPendingMessagePoller()
+
+	startPendingMessagePoller: ->
+		x = =>
+			#console.log 'checking...'
+			for name, bot of @bots
+				bot.deliverPendingMessages()
+			setTimeout(x, 500)
+		x()
 
 	exposeReplProperties: ->
 		@expose('sesh', @)
@@ -52,7 +60,7 @@ class Session
 		@masterbot.onMessage = (user, room, messageText) =>
 			for name, bot of @bots
 				continue if !bot.isConnected || bot.isDisabled
-				bot.processMessage(messageText)
+				bot.onMessage(messageText)
 
 	getEnvironmentName: ->
 		argv.env

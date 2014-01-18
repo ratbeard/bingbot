@@ -34,11 +34,16 @@ class Bot
 
 	load: ->
 		behaviorFn = require("./bots/#{@name}/bot.coffee")
-		injector.inject(behaviorFn, {})
+		@behavior = injector.inject(behaviorFn, {})
 
-	processMessage: (messageText) ->
-		@behavior.processMessage(messageText)
+	onMessage: (messageText) ->
+		@behavior.onMessage(messageText)
 
-	say: (messageText) ->
-		@behavior.say(messageText)
+	say: (body) ->
+		#console.log 'saying', body
+		@connection.say(body)
+
+	deliverPendingMessages: ->
+		while body = @behavior?.pendingMessages.shift()
+			@say body
 

@@ -11,12 +11,13 @@ module.exports = ->
 	class BotBehavior
 		constructor: ->
 			@matchers = []
+			@pendingMessages = []
 
 		match: (pattern, handler) ->
 			@matchers.push(new Matcher(pattern, handler))
 
 		say: (body) ->
-			console.log body
+			@pendingMessages.push(body)
 
 		onMessage: (messageText) ->
 			for matcher in @matchers
