@@ -16,10 +16,10 @@ module.exports = ($twilio, $contacts) ->
 					callback(null, user.phone)
 				)
 
-		sendTextMessage: (usernameOrPhoneNumber, body, callback) ->
+		sendSms: (usernameOrPhoneNumber, body, callback) ->
 			@getPhoneNumber(usernameOrPhoneNumber, (err, phoneNumber) ->
 				return error(err, callback) if err
-				$twilio.sendTextMessage(phoneNumber, body, (err, message) ->
+				$twilio.sendSms(phoneNumber, body, (err, message) ->
 					callback?()
 				)
 			)
@@ -31,6 +31,6 @@ if require.main == module
 	api = injector.inject(module.exports, services)
 	body = "sup dog?"
 	to = "encryptd_fractal"
-	api.sendTextMessage(to, body)
+	api.sendSms(to, body)
 
 

@@ -2,7 +2,7 @@ module.exports = ($api, bot) ->
 	bot.match(/^txt ([^ ]+) (.+)$/, (match) ->
 		[__, usernameOrPhoneNumber, body] = match
 		console.log usernameOrPhoneNumber, body
-		$api.sendTextMessage(usernameOrPhoneNumber, body, (err, message) =>
+		$api.sendSms(usernameOrPhoneNumber, body, (err, message) =>
 			return @say "Error: #{err}" if err
 			@say "Message delivered :)"
 		)

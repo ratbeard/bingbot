@@ -4,7 +4,10 @@ module.exports = ($secrets) ->
 	client = twilio(sid, token)
 
 	return {
-		sendTextMessage: (to, body, callback) ->
-			client.sms.messages.create({body, to, from}, callback)
+		sendSms: (to, body, callback) ->
+			client.sendSms({body, to, from}, callback)
+
+		# http://twilio.github.io/twilio-node/
+		#makeCall:
 	}
 
