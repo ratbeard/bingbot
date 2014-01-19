@@ -1,8 +1,4 @@
 injector = {
-	getDependency: (name) ->
-		console.log 'getDependency', name
-		require("./services/#{name}.coffee")()
-
 	argumentNames: (fn) ->
 		functionDeclarationRegex = /^\s*function\s*\(([^)]*)/
 		blankRegex = /^\s*$/
@@ -22,9 +18,13 @@ injector = {
 			behavior[dependency] = @getDependency(dependency)(bot)
 		bot.behavior = behavior
 
-	inject:(fn, registry={}) ->
+	inject:(fn, registry) ->
+		console.log 'injecting!'
 		services = for name in @argumentNames(fn)
-			registry[name] || @getDependency(name)
+			buildFn = registry.get(name)
+			serviceInstance = @inject(buildFn, registry)
+			serviceInstance
+		#console.log services
 		fn.apply(null, services)
 }
 

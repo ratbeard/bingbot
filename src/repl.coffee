@@ -66,33 +66,9 @@ class Session
 		argv.env
 
 	readConfig: ->
-		configDirPath = path.join(process.env.HOME, ".bingbot")
-		configFilePath = path.join(configDirPath, "config.json")
-		doesConfigDirExist = fs.existsSync(configDirPath)
-		if !doesConfigDirExist
-			console.log("""You didn't have a config file at '#{configFilePath}', so I created on for you.
-
-				ヽ༼ຈل͜ຈ༽ﾉ sorry ...
-
-				By default, just the settings in "default" are loaded.  
-				You can run me with '-e dev' to merge the settings in from "dev" as well.
-			""")
-			fs.mkdirSync(configDirPath)
-
 		if !fs.existsSync(configFilePath)
 			console.log("Copying in a default config file to '#{configFilePath}'") if doesConfigDirExist
 			fs.writeFileSync(configFilePath, """
-				{
-					"default": {
-						"server": "irc.freenode.net",
-						"channel": "coolkidsusa",
-						"launchBots": ["bingbot"]
-					},
-					"dev": {
-						"channel": "junkyard",
-						"launchBots": ["bingbot", "jarjarmuppet"]
-					}
-				}
 			""")
 
 		jsonText = fs.readFileSync(configFilePath)
