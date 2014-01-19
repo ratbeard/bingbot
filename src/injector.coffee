@@ -23,7 +23,7 @@ injector = {
 		argsString.split(commaRegex)
 
 	inject:(fn) ->
-		context = { botName: "secretary" }
+		context = { botName: "kaleigh" }
 		instantiatedServices = for name in @argumentNames(fn)
 			buildFn = services.get(name, context)
 			# TODO - handle circular dependencies
