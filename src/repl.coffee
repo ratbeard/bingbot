@@ -66,11 +66,8 @@ class Session
 		argv.env
 
 	readConfig: ->
-		if !fs.existsSync(configFilePath)
-			console.log("Copying in a default config file to '#{configFilePath}'") if doesConfigDirExist
-			fs.writeFileSync(configFilePath, """
-			""")
-
+		configDirPath = path.join(process.env.HOME, ".bingbot")
+		configFilePath = path.join(configDirPath, "config.json")
 		jsonText = fs.readFileSync(configFilePath)
 		json = JSON.parse(jsonText)
 		environmentName = @getEnvironmentName()

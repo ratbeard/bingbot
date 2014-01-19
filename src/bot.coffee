@@ -4,7 +4,7 @@
 # repl, each bot gets its own instance variable which can command.
 #
 Connection = require('./irc-connection')
-injector = require('./injector')
+{injector} = require('./injector')
 
 # Just clear the whole cache for now
 clearRequireCache = ->
