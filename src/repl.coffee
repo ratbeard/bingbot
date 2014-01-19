@@ -28,7 +28,15 @@ class Session
 		@loadBots()
 		@connectMasterbot()
 		@startLaunchBots()
-		#@bots.dogshitbot.load()
+		@startPendingMessagePoller()
+
+	startPendingMessagePoller: ->
+		x = =>
+			#console.log 'checking...'
+			for name, bot of @bots
+				bot.deliverPendingMessages()
+			setTimeout(x, 500)
+		x()
 
 	exposeReplProperties: ->
 		@expose('sesh', @)
@@ -52,7 +60,7 @@ class Session
 		@masterbot.onMessage = (user, room, messageText) =>
 			for name, bot of @bots
 				continue if !bot.isConnected || bot.isDisabled
-				bot.processMessage(messageText)
+				bot.onMessage(messageText)
 
 	getEnvironmentName: ->
 		argv.env
@@ -60,33 +68,6 @@ class Session
 	readConfig: ->
 		configDirPath = path.join(process.env.HOME, ".bingbot")
 		configFilePath = path.join(configDirPath, "config.json")
-		doesConfigDirExist = fs.existsSync(configDirPath)
-		if !doesConfigDirExist
-			console.log("""You didn't have a config file at '#{configFilePath}', so I created on for you.
-
-				ヽ༼ຈل͜ຈ༽ﾉ sorry ...
-
-				By default, just the settings in "default" are loaded.  
-				You can run me with '-e dev' to merge the settings in from "dev" as well.
-			""")
-			fs.mkdirSync(configDirPath)
-
-		if !fs.existsSync(configFilePath)
-			console.log("Copying in a default config file to '#{configFilePath}'") if doesConfigDirExist
-			fs.writeFileSync(configFilePath, """
-				{
-					"default": {
-						"server": "irc.freenode.net",
-						"channel": "coolkidsusa",
-						"launchBots": ["bingbot"]
-					},
-					"dev": {
-						"channel": "junkyard",
-						"launchBots": ["bingbot", "jarjarmuppet"]
-					}
-				}
-			""")
-
 		jsonText = fs.readFileSync(configFilePath)
 		json = JSON.parse(jsonText)
 		environmentName = @getEnvironmentName()

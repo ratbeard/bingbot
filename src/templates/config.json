@@ -1,0 +1,12 @@
+{
+	"default": {
+		"server": "irc.freenode.net",
+		"channel": "coolkidsusa",
+		"launchBots": ["bingbot"]
+	},
+	"dev": {
+		"channel": "junkyard",
+		"launchBots": ["jarjarmuppet"]
+	}
+}
+
