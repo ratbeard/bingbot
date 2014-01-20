@@ -88,6 +88,10 @@ class Session
 					names.push(name)
 				@masterbot.say(names.join(", "))
 
+			if match = /^(?:masterbot:? ?)quit/.exec(body)
+				throw "fuk"
+			
+
 			# TODO implement txt filters here
 			for name, bot of @bots
 				continue if !bot.isConnected || bot.isDisabled
