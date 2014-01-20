@@ -37,3 +37,11 @@ To run the repl and have it reload on file change:
 
 To add a package and save to package.json:
 		npm install underscore --save   (or --save-dev)
+
+
+TODO
+====
+
+- botName based on actual name in chatroom for commands
+
+

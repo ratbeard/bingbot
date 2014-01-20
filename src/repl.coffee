@@ -57,10 +57,41 @@ class Session
 	connectMasterbot: ->
 		console.log "launching masterbot..."
 		@masterbot.connect(@config)
-		@masterbot.onMessage = (user, room, messageText) =>
+		@masterbot.onMessage = (user, room, body) =>
+			# TODO move this somewhere else
+			if match = /^(?:masterbot:? ?)summon ([^ ]+)/.exec(body)
+				name = match[1]
+				bot = @bots[name]
+				console.log 'summoning', name
+				if !bot
+					@masterbot.say "ERR: Unknown bot `#{name}`"
+				else if bot && bot.isConnected
+					@masterbot.say "ERR: `#{name}` is already connected"
+				else
+					bot.connect()
+					@masterbot.say "Summoning `#{name}`"
+
+			if match = /^(?:masterbot:? ?)kick ([^ ]+)/.exec(body)
+				name = match[1]
+				bot = @bots[name]
+				console.log 'kicking', name
+				if !bot
+					@masterbot.say "ERR: Unknown bot `#{name}`"
+				else if bot && !bot.isConnected
+					@masterbot.say "ERR: `#{name}` is not connected"
+				else
+					bot.disconnect()
+
+			if match = /^(?:masterbot:? ?)bots/.exec(body)
+				names = []
+				for name, bot of @bots
+					names.push(name)
+				@masterbot.say(names.join(", "))
+
+			# TODO implement txt filters here
 			for name, bot of @bots
 				continue if !bot.isConnected || bot.isDisabled
-				bot.onMessage(messageText)
+				bot.onMessage(body)
 
 	getEnvironmentName: ->
 		argv.env
