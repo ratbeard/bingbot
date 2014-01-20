@@ -1,14 +1,15 @@
 services = {
-	put: (name, builderFn) ->
-		@[name] = builderFn
+	#put: (name, builderFn) ->
+		#@[name] = builderFn
 
 	get: (name, context) ->
-		@[name] || @read(name, context)
+		#@[name] || @read(name, context)
+		console.log 'get', name, context
+		context[name] || @read(name, context)
 
 	read: (name, context) ->
-		console.log 'read:', name
 		if name == "$api"
-			require("./bots/#{context.botName}/api")
+			require("./bots/#{context.botName()}/api")
 		else
 			require("./services/#{name}")
 }
@@ -22,22 +23,26 @@ injector = {
 		return [] if blankRegex.test(argsString)
 		argsString.split(commaRegex)
 
-	inject:(fn) ->
-		context = { botName: "kaleigh" }
+	inject:(fn, context={}) ->
 		instantiatedServices = for name in @argumentNames(fn)
-			buildFn = services.get(name, context)
+			buildFn = context[name] || services.get(name, context)
 			# TODO - handle circular dependencies
-			@inject(buildFn, services)
+			@inject(buildFn, context)
 		fn.apply(null, instantiatedServices)
+
+	bot: (botName) ->
+		context = {botName: -> botName}
+		behaviorFn = require("./bots/#{botName}/bot.coffee")
+		@inject(behaviorFn, context)
 }
 
 module.exports = {injector, services}
 
 if require.main == module
 	fn0 = (arg) ->
-	fn1 = (a, b_c, Hot) ->
+	fn1 = (a, b_c2, $Ho$t) ->
 	fn2 = () ->
-	fn3 = (uhoh...) -> 'this doesnt work'
+	fn3 = (uhoh...) -> 'this doesnt work :('
 	console.log JSON.stringify(injector.argumentNames(fn0))
 	console.log JSON.stringify(injector.argumentNames(fn1))
 	console.log JSON.stringify(injector.argumentNames(fn2))

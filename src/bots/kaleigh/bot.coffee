@@ -11,7 +11,6 @@ module.exports = ($api, bot) ->
 
 
 if require.main == module
-	{injector, services} = require('../../injector')
-	behavior = injector.inject(module.exports, services)
+	behavior = require('../../injector').inject.bot('kaleigh')
 	behavior.onMessage("txt encryptd_fractal cool")
 

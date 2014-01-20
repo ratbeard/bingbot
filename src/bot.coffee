@@ -34,7 +34,7 @@ class Bot
 
 	load: ->
 		behaviorFn = require("./bots/#{@name}/bot.coffee")
-		@behavior = injector.inject(behaviorFn, {})
+		@behavior = injector.inject(behaviorFn, {botName: => @name})
 
 	onMessage: (messageText) ->
 		@behavior.onMessage(messageText)
