@@ -16,17 +16,17 @@ class Bot
 	constructor: (@name, @ircConfig) ->
 		@connection = null
 		@behavior = null
-		@isConnected = false
 
 	connect: () ->
 		@reload()
 		@connection = new Connection(@name)
 		@connection.connect(@ircConfig)
-		@isConnected = true
 
 	disconnect: ->
-		@isConnected = true
 		@connection.disconnect()
+
+	isConnected: ->
+		@connection && !@connection.irc.conn.destroyed
 
 	reload: ->
 		clearRequireCache()

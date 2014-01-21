@@ -44,7 +44,7 @@ class Session
 			@loadBots()
 			console.log("\nBots:")
 			for name, bot of @bots
-				status = bot.isConnected && "*" || " "
+				status = bot.isConnected() && "*" || " "
 				console.log(" (%s)	%s", status, name)
 			console.log("")
 		)
@@ -65,7 +65,7 @@ class Session
 				console.log 'summoning', name
 				if !bot
 					@masterbot.say "ERR: Unknown bot `#{name}`"
-				else if bot && bot.isConnected
+				else if bot && bot.isConnected()
 					@masterbot.say "ERR: `#{name}` is already connected"
 				else
 					bot.connect()
@@ -77,7 +77,7 @@ class Session
 				console.log 'kicking', name
 				if !bot
 					@masterbot.say "ERR: Unknown bot `#{name}`"
-				else if bot && !bot.isConnected
+				else if bot && !bot.isConnected()
 					@masterbot.say "ERR: `#{name}` is not connected"
 				else
 					bot.disconnect()
@@ -94,7 +94,7 @@ class Session
 
 			# TODO implement txt filters here
 			for name, bot of @bots
-				continue if !bot.isConnected || bot.isDisabled
+				continue if !bot.isConnected() || bot.isDisabled
 				bot.onMessage(body)
 
 	getEnvironmentName: ->
@@ -138,22 +138,4 @@ class Session
 
 sesh = new Session()
 sesh.start()
-
-#masterListener.onMessage = (user, room, messageText) ->
-	#for name, bot of bots
-		#continue unless bot.isConnected
-		#bot.processMessage(messageText)
-
-	#if match = /summon ([^\s]+)/.exec(messageText)
-		#botName = match[1]
-		#bot = repl.context[botName]
-		#console.log "summonning bot: #{botName}"
-		#if !bot
-			#console.error "no bot named"
-		#else if !bot.connect
-			#console.error "umm that aint a bot"
-		#else if bot.isConnected
-			#console.log "already connected fool"
-		#else
-			#bot.connect()
 
