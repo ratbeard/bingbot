@@ -1,3 +1,5 @@
+Bots
+====
 Development setup instructions (OSX):
 
 		npm install
@@ -16,6 +18,16 @@ Useful commands inside repl:
 		dogshitbot.reload()   				// reloads behavior, stays connected in channel
 
 
+To generate a bot:
+
+		# one time setup
+		cd generators/generator-bot
+		npm link 
+		cd ../..
+
+		yo bot coolbot
+
+
 scratchpad
 =======
 To run the repl and have it reload on file change:
@@ -25,3 +37,11 @@ To run the repl and have it reload on file change:
 
 To add a package and save to package.json:
 		npm install underscore --save   (or --save-dev)
+
+
+TODO
+====
+
+- botName based on actual name in chatroom for commands
+
+

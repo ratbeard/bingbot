@@ -1,11 +1,19 @@
 fs = require('fs')
 path = require('path')
 repl = require('repl')
+_ = require('underscore')
+argv = require('optimist')
+	.usage('-e dev')
+	.alias('e', 'env')
+	.describe('e', 'Set an environment, whose settings in ~/.bingbot/config.json will be merged into the defaults')
+	.default('env', "default")
+	.argv
 
 # Ours
 Connection = require('./irc-connection')
 Bot = require('./bot')
 		
+
 class Session
 	constructor: ->
 		@bots = {}
@@ -20,15 +28,24 @@ class Session
 		@loadBots()
 		@connectMasterbot()
 		@startLaunchBots()
-		#@bots.dogshitbot.load()
+		@startPendingMessagePoller()
+
+	startPendingMessagePoller: ->
+		x = =>
+			#console.log 'checking...'
+			for name, bot of @bots
+				bot.deliverPendingMessages()
+			setTimeout(x, 500)
+		x()
 
 	exposeReplProperties: ->
 		@expose('sesh', @)
 		@exposeGetter("bots", =>
+			@loadBots()
 			console.log("\nBots:")
 			for name, bot of @bots
-				status = bot.isConnected && "*" || " "
-				console.log(" (%s)  %s", status, name)
+				status = bot.isConnected() && "*" || " "
+				console.log(" (%s)	%s", status, name)
 			console.log("")
 		)
 
@@ -40,17 +57,61 @@ class Session
 	connectMasterbot: ->
 		console.log "launching masterbot..."
 		@masterbot.connect(@config)
-		@masterbot.onMessage = (user, room, messageText) =>
+		@masterbot.onMessage = (user, room, body) =>
+			# TODO move this somewhere else
+			if match = /^(?:masterbot:? ?)summon ([^ ]+)/.exec(body)
+				name = match[1]
+				bot = @bots[name]
+				console.log 'summoning', name
+				if !bot
+					@masterbot.say "ERR: Unknown bot `#{name}`"
+				else if bot && bot.isConnected()
+					@masterbot.say "ERR: `#{name}` is already connected"
+				else
+					bot.connect()
+					@masterbot.say "Summoning `#{name}`"
+
+			if match = /^(?:masterbot:? ?)kick ([^ ]+)/.exec(body)
+				name = match[1]
+				bot = @bots[name]
+				console.log 'kicking', name
+				if !bot
+					@masterbot.say "ERR: Unknown bot `#{name}`"
+				else if bot && !bot.isConnected()
+					@masterbot.say "ERR: `#{name}` is not connected"
+				else
+					bot.disconnect()
+
+			if match = /^(?:masterbot:? ?)bots/.exec(body)
+				names = []
+				for name, bot of @bots
+					names.push(name)
+				@masterbot.say(names.join(", "))
+
+			if match = /^(?:masterbot:? ?)quit/.exec(body)
+				throw "fuk"
+			
+
+			# TODO implement txt filters here
 			for name, bot of @bots
-				continue if !bot.isConnected || bot.isDisabled
-				bot.processMessage(messageText)
+				continue if !bot.isConnected() || bot.isDisabled
+				bot.onMessage(body)
+
+	getEnvironmentName: ->
+		argv.env
 
 	readConfig: ->
-		{
-			server: "irc.freenode.net"
-			channel: "coolkidsusa"
-			launchBots: ['dogshitbot']
-		}
+		configDirPath = path.join(process.env.HOME, ".bingbot")
+		configFilePath = path.join(configDirPath, "config.json")
+		jsonText = fs.readFileSync(configFilePath)
+		json = JSON.parse(jsonText)
+		environmentName = @getEnvironmentName()
+		environmentConfig = json[environmentName]
+		if environmentName && !environmentConfig
+			console.error("""Hey I didn't see any config for '#{environmentName}' in #{configFilePath}.
+											 Only saw: #{Object.keys(json).join(' ')}""")
+			throw "TRY BETTER NEXT TIME"
+		_.extend(json.default, environmentConfig)
 
 	availableBots: ->
 		fs.readdirSync(path.join(__dirname, "bots"))
@@ -58,6 +119,7 @@ class Session
 	loadBots: () ->
 		ircConfig = @readConfig()
 		for name in @availableBots()
+			continue if @bots[name]
 			bot = new Bot(name, ircConfig)
 			@bots[name] = bot
 			@expose(name, bot)
@@ -76,22 +138,4 @@ class Session
 
 sesh = new Session()
 sesh.start()
-
-#masterListener.onMessage = (user, room, messageText) ->
-	#for name, bot of bots
-		#continue unless bot.isConnected
-		#bot.processMessage(messageText)
-
-	#if match = /summon ([^\s]+)/.exec(messageText)
-		#botName = match[1]
-		#bot = repl.context[botName]
-		#console.log "summonning bot: #{botName}"
-		#if !bot
-			#console.error "no bot named"
-		#else if !bot.connect
-			#console.error "umm that aint a bot"
-		#else if bot.isConnected
-			#console.log "already connected fool"
-		#else
-			#bot.connect()
 
