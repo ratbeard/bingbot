@@ -1,93 +1,141 @@
 fs = require('fs')
 path = require('path')
-repl = require('repl').start({})
-chat = require('./irc-connection')
+repl = require('repl')
+_ = require('underscore')
+argv = require('optimist')
+	.usage('-e dev')
+	.alias('e', 'env')
+	.describe('e', 'Set an environment, whose settings in ~/.bingbot/config.json will be merged into the defaults')
+	.default('env', "default")
+	.argv
 
-#
-# Utils
-#
-extend = (target, src) ->
-	for k, v of src
-		target[k] = v
+# Ours
+Connection = require('./irc-connection')
+Bot = require('./bot')
 		
-#
-# State
-#
-botNames = null
-ircConfig = null
 
+class Session
+	constructor: ->
+		@bots = {}
+		@repl = null
+		@config = @readConfig()
+		@masterbot = new Connection("masterbot")
 
-#
-# Bot loading
-#
+	start: ->
+		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"
+		@startRepl()
+		@exposeReplProperties()
+		@loadBots()
+		@connectMasterbot()
+		@startLaunchBots()
+		@startPendingMessagePoller()
 
-# Reload the bots
-reload = ->
-	console.log 'Reloading!'
-	clearRequireCache()
-	loadBots()
+	startPendingMessagePoller: ->
+		x = =>
+			#console.log 'checking...'
+			for name, bot of @bots
+				bot.deliverPendingMessages()
+			setTimeout(x, 500)
+		x()
 
-clearRequireCache = ->
-	require.cache = {}
+	exposeReplProperties: ->
+		@expose('sesh', @)
+		@exposeGetter("bots", =>
+			@loadBots()
+			console.log("\nBots:")
+			for name, bot of @bots
+				status = bot.isConnected() && "*" || " "
+				console.log(" (%s)	%s", status, name)
+			console.log("")
+		)
 
-loadBots = ->
-	botNames = fs.readdirSync(path.join(__dirname, "bots"))
-	for name in botNames
-		#loadBot(name)
-		ircConfig =
-			server: "irc.freenode.net"
-			channel: "coolkidsusa"
-		bot = new chat.Bot(name, ircConfig)
-		repl.context[name] = bot
-		repl.context.d = bot if name == 'dogshitbot'
-	repl.context.bots = botNames
+	startLaunchBots: ->
+		for name in @config.launchBots ? []
+			console.log "launching #{name}..."
+			@bots[name].connect()
 
-loadBot = (name) ->
-	bot = require("./bots/#{name}/bot.coffee")
-	repl.context[name] = bot
-	# dev helper
-	repl.context.d = bot if name == 'dogshitbot'
+	connectMasterbot: ->
+		console.log "launching masterbot..."
+		@masterbot.connect(@config)
+		@masterbot.onMessage = (user, room, body) =>
+			# TODO move this somewhere else
+			if match = /^(?:masterbot:? ?)summon ([^ ]+)/.exec(body)
+				name = match[1]
+				bot = @bots[name]
+				console.log 'summoning', name
+				if !bot
+					@masterbot.say "ERR: Unknown bot `#{name}`"
+				else if bot && bot.isConnected()
+					@masterbot.say "ERR: `#{name}` is already connected"
+				else
+					bot.connect()
+					@masterbot.say "Summoning `#{name}`"
 
-#
-# Master bot connection
-#
-connectToChatroom = ->
-	console.log Chatroom
-	#chatroom = new Chatroom(ircConfig)
+			if match = /^(?:masterbot:? ?)kick ([^ ]+)/.exec(body)
+				name = match[1]
+				bot = @bots[name]
+				console.log 'kicking', name
+				if !bot
+					@masterbot.say "ERR: Unknown bot `#{name}`"
+				else if bot && !bot.isConnected()
+					@masterbot.say "ERR: `#{name}` is not connected"
+				else
+					bot.disconnect()
 
+			if match = /^(?:masterbot:? ?)bots/.exec(body)
+				names = []
+				for name, bot of @bots
+					names.push(name)
+				@masterbot.say(names.join(", "))
 
-#
-# Init
-#
+			if match = /^(?:masterbot:? ?)quit/.exec(body)
+				throw "fuk"
+			
 
-#connectToChatroom()
-loadBots()
-extend(repl.context, {reload})
+			# TODO implement txt filters here
+			for name, bot of @bots
+				continue if !bot.isConnected() || bot.isDisabled
+				bot.onMessage(body)
 
-ircConfig =
-	server: "irc.freenode.net"
-	channel: "coolkidsusa"
+	getEnvironmentName: ->
+		argv.env
 
+	readConfig: ->
+		configDirPath = path.join(process.env.HOME, ".bingbot")
+		configFilePath = path.join(configDirPath, "config.json")
+		jsonText = fs.readFileSync(configFilePath)
+		json = JSON.parse(jsonText)
+		environmentName = @getEnvironmentName()
+		environmentConfig = json[environmentName]
+		if environmentName && !environmentConfig
+			console.error("""Hey I didn't see any config for '#{environmentName}' in #{configFilePath}.
+											 Only saw: #{Object.keys(json).join(' ')}""")
+			throw "TRY BETTER NEXT TIME"
+		_.extend(json.default, environmentConfig)
 
-messageQueue = new chat.MessageQueue
-masterListener = new chat.Listener("masterbot")
-masterListener.connect(ircConfig)
-masterListener.onMessage = (user, room, said) ->
-	console.log 'i heard dat'
-	if match = /summon ([^\s]+)/.exec(said)
-		botName = match[1]
-		bot = repl.context[botName]
-		console.log "summonning bot: #{botName}"
-		if !bot
-			console.error "no bot named"
-		else if !bot.connect
-			console.error "umm that aint a bot"
-		else if bot.isConnected
-			console.log "already connected fool"
-		else
-			bot.connect()
-masterListener
+	availableBots: ->
+		fs.readdirSync(path.join(__dirname, "bots"))
 
-repl.context.m = masterListener
+	loadBots: () ->
+		ircConfig = @readConfig()
+		for name in @availableBots()
+			continue if @bots[name]
+			bot = new Bot(name, ircConfig)
+			@bots[name] = bot
+			@expose(name, bot)
+			@expose('d', bot) if name == 'dogshitbot' # dev helper
+		
+	startRepl: ->
+		@repl = repl.start({})
 
+	expose: (name, value) ->
+		@repl.context[name] = value
+
+	exposeGetter: (name, value) ->
+		Object.defineProperty(@repl.context, name, get: value)
+
+		
+
+sesh = new Session()
+sesh.start()
 
