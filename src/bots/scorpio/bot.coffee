@@ -1,5 +1,6 @@
 irc         = require 'irc'
-nano        = require 'nano'
+nano        = require('nano')('http://localhost:5984/scorpio')
+uuid        = require 'node-uuid'
 pusher      = require 'pusher'
 
 
@@ -64,6 +65,7 @@ class Scorpio
 
   addScore: (user, value, reason) =>
     userData = user
+    id = uuid.v1()
     console.log "ADDING SCORE FOR #{user}"
 
     unless user.indexOf("http://") is -1
@@ -77,6 +79,16 @@ class Scorpio
       console.log user
 
     # Get the Name of the user against the db
+    nano.insert({
+      awardedBy: null #TODO: add the from field so we know whom awarded the subject
+      points: value
+      subject: user
+    }, id, (err, body, header) =>
+      if (err)
+        console.log('[alice.insert] ', err.message)
+        return
+    )
+    
 
   findScores: (from, to, order) =>
     if order is 'ascending'
@@ -89,7 +101,21 @@ class Scorpio
     console.log ""
 
   sayScore: (from, to, user) =>
-    console.log ""
+    nano.view('scorpio', "get-score-by-key?group=true", {keys: [user]},(err, body) =>
+      if (!err)
+        console.log body.rows.length
+        if (body.rows && body.rows.length > 0)
+          body.rows.forEach( (doc) =>
+            points = doc.value.points
+            msg = "#{user} has #{points} points"
+
+            @bot.say(to, msg)
+            return
+          )
+        else
+          msg = "No points found for #{user}"
+          @bot.say(to, msg)
+    )
 
   _checkLimit: (limitBy) =>
     ## We don't want to flood the chat with a bunch of scores
