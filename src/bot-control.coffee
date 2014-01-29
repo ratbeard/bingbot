@@ -1,4 +1,3 @@
-BotConnection = require('./bot-connection')
 {injector} = require('./injector')
 
 # Just clear the whole cache for now
@@ -7,14 +6,12 @@ clearRequireCache = ->
 		delete require.cache[k]
 
 class BotControl
-	constructor: (@name, @ircConfig) ->
-		@connection = null
+	constructor: (@name, @connection) ->
 		@behavior = null
 
 	connect: () ->
-		@reload()
-		@connection = new BotConnection(@name)
-		@connection.connect(@ircConfig)
+		#@reload()
+		@connection.connect()
 
 	disconnect: ->
 		@connection.disconnect()

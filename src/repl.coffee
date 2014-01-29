@@ -10,7 +10,6 @@ argv = require('optimist')
 	.default('env', "default")
 	.argv
 
-# Ours
 BotConnection = require('./bot-connection')
 BotControl = require('./bot-control')
 
@@ -18,16 +17,16 @@ class Session
 	constructor: ->
 		@bots = {}
 		@repl = null
+		@masterBot = null
 		@config = @readConfig()
-		@masterConnection = new BotConnection("masterbot")
 
 	start: ->
 		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!".rainbow
 		@startFileWatcher()
 		@startRepl()
 		@loadBots()
-		@connectMasterbot()
-		@connectLaunchingBots()
+		@launchMasterbot()
+		@launchStartingBots()
 		@startPendingMessagePoller()
 
 	# On changing any file within this tree, bot behaviors are reloaded
@@ -68,14 +67,18 @@ class Session
 			setTimeout(x, 500)
 		x()
 
-	connectLaunchingBots: ->
+	launchStartingBots: ->
 		for name in @config.launchBots ? []
 			console.log "launching #{name}..."
 			@bots[name].connect()
 
-	connectMasterbot: ->
+	launchMasterbot: ->
 		console.log "launching masterbot..."
-		@masterConnection.connect(@config)
+		name = "masterbot"
+		connection = new BotConnection(@config.server, @config.channel, name)
+		botControl = new BotControl(name, connection)
+		botControl.connect()
+		@masterbot = botControl
 
 	getEnvironmentName: ->
 		argv.env
@@ -101,13 +104,12 @@ class Session
 		fs.readdirSync(path.join(__dirname, "bots"))
 
 	loadBots: () ->
-		ircConfig = @readConfig()
 		for name in @availableBots()
 			continue if @bots[name]
-			bot = new BotControl(name, ircConfig)
-			@bots[name] = bot
-			@expose(name, bot)
-			@expose('d', bot) if name == 'dogshitbot' # dev helper
+			connection = new BotConnection(@config.server, @config.channel, name)
+			botControl = new BotControl(name, connection)
+			@bots[name] = botControl
+			@expose(name, botControl)
 		
 	startRepl: ->
 		@repl = repl.start({})
