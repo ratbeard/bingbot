@@ -37,7 +37,10 @@ class Bot
 		@behavior = injector.inject(behaviorFn, {botName: => @name})
 
 	onMessage: (messageText) ->
-		@behavior.onMessage(messageText)
+		try
+			@behavior.onMessage(messageText)
+		catch e
+			console.error("ERROR: `#{@name}` failed to understand `#{messageText}`.\n#{e}")
 
 	say: (body) ->
 		#console.log 'saying', body

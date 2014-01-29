@@ -38,7 +38,7 @@ class Session
 		baseDirectory = __dirname
 
 		addWatch = (directory) =>
-			console.log 'watching dir:', directory
+			#console.log 'Watching directory for changes:', directory
 			fs.watch(directory, @reloadBotBehavior)
 
 		addWatchIfDirectory = (file) ->
