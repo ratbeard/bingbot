@@ -23,12 +23,45 @@ class Session
 
 	start: ->
 		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"
+		@startFileWatcher()
 		@startRepl()
 		@exposeReplProperties()
 		@loadBots()
 		@connectMasterbot()
 		@startLaunchBots()
 		@startPendingMessagePoller()
+
+	# On changing any file within this tree, bot behaviors are reloaded
+	# TODO - reload service changes as well
+	# TODO - watch for new dirs that are added
+	startFileWatcher: ->
+		baseDirectory = __dirname
+		directoriesToWatch = []
+
+		addWatch = (directory) =>
+			console.log 'watching dir:', directory
+			fs.watch(directory, @reloadBotBehavior)
+
+		addWatchIfDirectory = (file) ->
+			fs.stat file, (err, stat) ->
+				return unless stat?.isDirectory()
+				walkDirectory(file)
+			
+		walkDirectory = (directory) ->
+			addWatch(directory)
+			fs.readdir directory, (err, files) ->
+				for file in files
+					addWatchIfDirectory(path.join(directory, file))
+
+		walkDirectory(baseDirectory)
+
+	reloadBotBehavior: =>
+		for name, bot of @bots
+			try
+				bot.reload()
+			catch e
+				console.error("ERROR reloading bot: #{name}")
+				console.error(e)
 
 	startPendingMessagePoller: ->
 		x = =>
