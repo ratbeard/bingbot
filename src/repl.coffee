@@ -2,6 +2,7 @@ fs = require('fs')
 path = require('path')
 repl = require('repl')
 _ = require('underscore')
+colors = require('colors')
 argv = require('optimist')
 	.usage('-e dev')
 	.alias('e', 'env')
@@ -59,8 +60,7 @@ class Session
 			try
 				bot.reload()
 			catch e
-				console.error("ERROR reloading bot: #{name}")
-				console.error(e)
+				console.error("`#{name}` blew up while reloading.  Error: #{e}".red)
 
 	startPendingMessagePoller: ->
 		x = =>

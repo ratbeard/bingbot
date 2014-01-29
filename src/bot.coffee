@@ -40,7 +40,7 @@ class Bot
 		try
 			@behavior.onMessage(messageText)
 		catch e
-			console.error("ERROR: `#{@name}` failed to understand `#{messageText}`.\n#{e}")
+			console.error("`#{@name}` blew up on:`#{messageText}`.  Error: \n#{e}".red)
 
 	say: (body) ->
 		#console.log 'saying', body
