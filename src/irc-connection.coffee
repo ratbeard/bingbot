@@ -14,12 +14,8 @@ class Connection
 			debug: true
 			channels: [@channel]
 		)
-		@irc.addListener("error", (error) =>
-			@onError(error)
-		)
-		@irc.addListener("message", (a,b,c) =>
-			@onMessage(a,b,c)
-		)
+		@irc.addListener("error", @onError)
+		@irc.addListener("message",@onMessage)
 
 	disconnect: ->
 		@irc.disconnect()
@@ -28,7 +24,7 @@ class Connection
 		#console.log "#{user}:'#{message}'"
 
 	onError: (error) ->
-		console.error "fuk:", error
+		console.error "irc error: #{error}".red
 
 	say: (messageText) ->
 		@irc.say(@channel, messageText)
