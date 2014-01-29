@@ -36,7 +36,6 @@ class Session
 	# TODO - watch for new dirs that are added
 	startFileWatcher: ->
 		baseDirectory = __dirname
-		directoriesToWatch = []
 
 		addWatch = (directory) =>
 			console.log 'watching dir:', directory
