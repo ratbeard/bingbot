@@ -11,24 +11,23 @@ argv = require('optimist')
 	.argv
 
 # Ours
-Connection = require('./irc-connection')
-Bot = require('./bot')
+BotConnection = require('./bot-connection')
+BotControl = require('./bot-control')
 
 class Session
 	constructor: ->
 		@bots = {}
 		@repl = null
 		@config = @readConfig()
-		@masterConnection = new Connection("masterbot")
+		@masterConnection = new BotConnection("masterbot")
 
 	start: ->
-		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"
+		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!".rainbow
 		@startFileWatcher()
 		@startRepl()
-		@exposeReplProperties()
 		@loadBots()
 		@connectMasterbot()
-		@startLaunchBots()
+		@connectLaunchingBots()
 		@startPendingMessagePoller()
 
 	# On changing any file within this tree, bot behaviors are reloaded
@@ -69,18 +68,7 @@ class Session
 			setTimeout(x, 500)
 		x()
 
-	exposeReplProperties: ->
-		@expose('sesh', @)
-		@exposeGetter("bots", =>
-			@loadBots()
-			console.log("\nBots:")
-			for name, bot of @bots
-				status = bot.isConnected() && "*" || " "
-				console.log(" (%s)	%s", status, name)
-			console.log("")
-		)
-
-	startLaunchBots: ->
+	connectLaunchingBots: ->
 		for name in @config.launchBots ? []
 			console.log "launching #{name}..."
 			@bots[name].connect()
@@ -116,13 +104,21 @@ class Session
 		ircConfig = @readConfig()
 		for name in @availableBots()
 			continue if @bots[name]
-			bot = new Bot(name, ircConfig)
+			bot = new BotControl(name, ircConfig)
 			@bots[name] = bot
 			@expose(name, bot)
 			@expose('d', bot) if name == 'dogshitbot' # dev helper
 		
 	startRepl: ->
 		@repl = repl.start({})
+		@expose('sesh', @)
+		@exposeGetter "bots", =>
+			@loadBots()
+			console.log("\nBots:")
+			for name, bot of @bots
+				status = bot.isConnected() && "*" || " "
+				console.log(" (%s)	%s", status, name)
+			console.log("")
 
 	expose: (name, value) ->
 		@repl.context[name] = value

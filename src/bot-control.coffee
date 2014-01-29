@@ -1,9 +1,4 @@
-#
-# A bot is a high level delegate-like object.  It connects to the chatroom and
-# puts on a pretty face, but doesn't implement the actual behavior.  In the
-# repl, each bot gets its own instance variable which can command.
-#
-Connection = require('./irc-connection')
+BotConnection = require('./bot-connection')
 {injector} = require('./injector')
 
 # Just clear the whole cache for now
@@ -11,15 +6,14 @@ clearRequireCache = ->
 	for k, v of require.cache
 		delete require.cache[k]
 
-module.exports =
-class Bot
+class BotControl
 	constructor: (@name, @ircConfig) ->
 		@connection = null
 		@behavior = null
 
 	connect: () ->
 		@reload()
-		@connection = new Connection(@name)
+		@connection = new BotConnection(@name)
 		@connection.connect(@ircConfig)
 
 	disconnect: ->
@@ -49,4 +43,6 @@ class Bot
 	deliverPendingMessages: ->
 		while body = @behavior?.pendingMessages.shift()
 			@say body
+
+module.exports = BotControl
 

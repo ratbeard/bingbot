@@ -1,7 +1,6 @@
 irc = require('irc')
 
-module.exports =
-class Connection
+class BotConnection
 	constructor: (@name) ->
 
 	connect: (ircConfig) ->
@@ -28,4 +27,6 @@ class Connection
 
 	say: (messageText) ->
 		@irc.say(@channel, messageText)
+
+module.exports = BotConnection
 
