@@ -1,5 +1,7 @@
 irc         = require 'irc'
-nano        = require('nano')('http://localhost:5984/scorpio')
+nano        = require('nano')({
+                url: 'http://scorpio.cujo.jp:5984/'
+              })
 uuid        = require 'node-uuid'
 pusher      = require 'pusher'
 
@@ -21,9 +23,6 @@ class Scorpio
 
     # init the new scorpio!
     @_init()
-
-  clearScores: =>
-    console.log 'test'
 
 
   addUser: (user, value, reason) =>
@@ -165,7 +164,7 @@ class Scorpio
   _handleError: (message) =>
     # quality error handling 
     # +1 darkcypher_bit (aka. ratfuk, encrypted_fractal, COMPUTER_HOBBY)
-    console.log "fuk #{message}"
+    throw new Error "fuk #{message}"
 
   _connectBot: =>
     @bot = new irc.Client('irc.freenode.net', "#{@botName}",
@@ -192,7 +191,6 @@ class Scorpio
     # Listen to new messages for addings and removing points 
     @bot.addListener 'message', (from, to, message) =>
       #console.log('%s => %s: %s', from, to, message)
-      @clearScores()
 
       if match = message.match(/([+-]\d+)\s+(\S+)\s+(for(.*))/)
         [_, score, user, reason] = match
@@ -288,7 +286,25 @@ class Scorpio
     })
 
   _connectDb: =>
-    @_connectBot()
+    # TODO: DO NOT COMMIT THIS SNIPPET OF DOG THIS
+    # I WILL FUCKING MURDER YOU 
+    # FUCK YOU
+    u = 'scorpio'
+    pw = 'hotmilf69'
+    cookie = {}
+    # END DOG SHIT
+
+    nano.auth(u, pw, (err, body, headers) =>
+      if (err)
+        console.log u, pw, err, body, headers
+        @_handleError(err)
+
+      if (headers and headers['set-cookie'])
+        cookie[user] = headers['set-cookie']
+
+      @_connectBot()
+    )
+    
 
   _init: =>
     @_connectDb()

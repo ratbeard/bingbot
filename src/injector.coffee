@@ -4,7 +4,7 @@ services = {
 
 	get: (name, context) ->
 		#@[name] || @read(name, context)
-		console.log 'get', name, context
+		#console.log 'get', name, context
 		context[name] || @read(name, context)
 
 	read: (name, context) ->

@@ -37,7 +37,10 @@ class Bot
 		@behavior = injector.inject(behaviorFn, {botName: => @name})
 
 	onMessage: (messageText) ->
-		@behavior.onMessage(messageText)
+		try
+			@behavior.onMessage(messageText)
+		catch e
+			console.error("`#{@name}` blew up on:`#{messageText}`.  Error: \n#{e}".red)
 
 	say: (body) ->
 		#console.log 'saying', body
