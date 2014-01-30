@@ -1,4 +1,5 @@
 {injector} = require('./injector')
+{error} = require('./utils')
 
 # Just clear the whole cache for now
 clearRequireCache = ->
@@ -10,7 +11,7 @@ class BotControl
 		@behavior = null
 
 	connect: () ->
-		#@reload()
+		@reload()
 		@connection.connect()
 
 	disconnect: ->
@@ -27,11 +28,11 @@ class BotControl
 		behaviorFn = require("./bots/#{@name}/bot.coffee")
 		@behavior = injector.inject(behaviorFn, {botName: => @name})
 
-	onMessage: (messageText) ->
+	onMessage: (message) ->
 		try
-			@behavior.onMessage(messageText)
+			@behavior.onMessage(message)
 		catch e
-			console.error("`#{@name}` blew up on:`#{messageText}`.  Error: \n#{e}".red)
+			error("`#{@name}` blew up on message:`#{messageText}`", e)
 
 	say: (body) ->
 		#console.log 'saying', body

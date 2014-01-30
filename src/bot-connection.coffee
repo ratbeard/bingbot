@@ -1,7 +1,7 @@
 irc = require('irc')
 
 class BotConnection
-	constructor: (@server, @channel, @name) ->
+	constructor: (@server, @channel, @name, @delegate) ->
 		@channel = "##{@channel}" unless @channel[0] == '#'
 		# TODO
 		@nameInChannel = null
@@ -14,10 +14,12 @@ class BotConnection
 	disconnect: ->
 		@irc.disconnect()
 
-	onMessage: (user, room, body) ->
-		console.log "#{user}:'#{body}'"
+	onMessage: (user, room, body) =>
+		#console.log "#{user}:'#{body}'"
+		message = {user, room, body}
+		@delegate.onMessage(message)
 
-	onError: (error) ->
+	onError: (error) =>
 		console.error "irc error: #{error}".red
 
 	say: (body) ->

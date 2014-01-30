@@ -42,11 +42,11 @@ class BotBehavior
 	#
 	# Events
 	#
-	onMessage: (messageText) ->
+	onMessage: (message) ->
 		for matcher in @matchers
-			if matcher.matches(messageText)
+			if matcher.matches(message.body)
 				matcher.callHandler(@)
 				return
 
-
 module.exports = BotBehavior
+

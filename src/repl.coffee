@@ -1,17 +1,20 @@
 fs = require('fs')
 path = require('path')
 repl = require('repl')
-_ = require('underscore')
 colors = require('colors')
-argv = require('optimist')
+optimist = require('optimist')
+
+BotConnection = require('./bot-connection')
+BotControl = require('./bot-control')
+{extend, error} = require('./utils')
+
+# Parse command line options
+argv = optimist
 	.usage('-e dev')
 	.alias('e', 'env')
 	.describe('e', 'Set an environment, whose settings in ~/.bingbot/config.json will be merged into the defaults')
 	.default('env', "default")
 	.argv
-
-BotConnection = require('./bot-connection')
-BotControl = require('./bot-control')
 
 class Session
 	constructor: ->
@@ -57,7 +60,7 @@ class Session
 			try
 				bot.reload()
 			catch e
-				console.error("`#{name}` blew up while reloading.  Error: #{e}".red)
+				error("`#{name}` blew up while reloading", e)
 
 	startPendingMessagePoller: ->
 		x = =>
@@ -66,19 +69,6 @@ class Session
 				bot.deliverPendingMessages()
 			setTimeout(x, 500)
 		x()
-
-	launchStartingBots: ->
-		for name in @config.launchBots ? []
-			console.log "launching #{name}..."
-			@bots[name].connect()
-
-	launchMasterbot: ->
-		console.log "launching masterbot..."
-		name = "masterbot"
-		connection = new BotConnection(@config.server, @config.channel, name)
-		botControl = new BotControl(name, connection)
-		botControl.connect()
-		@masterbot = botControl
 
 	getEnvironmentName: ->
 		argv.env
@@ -97,11 +87,30 @@ class Session
 				Only saw: #{Object.keys(json).join(' ')}
 				
 					TRY BETTER NEXT TIME""".red
-			throw "TRY BETTER NEXT TIME"
-		_.extend(json.default, environmentConfig)
+			process.exit(1)
+
+		extend(json.default, environmentConfig)
 
 	availableBots: ->
 		fs.readdirSync(path.join(__dirname, "bots"))
+
+	launchStartingBots: ->
+		return
+		for name in @config.launchBots ? []
+			console.log "launching #{name}..."
+			@bots[name].connect()
+
+	launchMasterbot: ->
+		console.log "launching masterbot..."
+		name = "masterbot"
+		delegate = {
+			onMessage: (message) ->
+				botControl.onMessage(message)
+		}
+		connection = new BotConnection(@config.server, @config.channel, name, delegate)
+		botControl = new BotControl(name, connection)
+		botControl.connect()
+		@masterbot = botControl
 
 	loadBots: () ->
 		for name in @availableBots()
