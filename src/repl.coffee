@@ -2,6 +2,7 @@ fs = require('fs')
 path = require('path')
 repl = require('repl')
 _ = require('underscore')
+colors = require('colors')
 argv = require('optimist')
 	.usage('-e dev')
 	.alias('e', 'env')
@@ -23,12 +24,43 @@ class Session
 
 	start: ->
 		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"
+		@startFileWatcher()
 		@startRepl()
 		@exposeReplProperties()
 		@loadBots()
 		@connectMasterbot()
 		@startLaunchBots()
 		@startPendingMessagePoller()
+
+	# On changing any file within this tree, bot behaviors are reloaded
+	# TODO - reload service changes as well
+	# TODO - watch for new dirs that are added
+	startFileWatcher: ->
+		baseDirectory = __dirname
+
+		addWatch = (directory) =>
+			#console.log 'Watching directory for changes:', directory
+			fs.watch(directory, @reloadBotBehavior)
+
+		addWatchIfDirectory = (file) ->
+			fs.stat file, (err, stat) ->
+				return unless stat?.isDirectory()
+				walkDirectory(file)
+			
+		walkDirectory = (directory) ->
+			addWatch(directory)
+			fs.readdir directory, (err, files) ->
+				for file in files
+					addWatchIfDirectory(path.join(directory, file))
+
+		walkDirectory(baseDirectory)
+
+	reloadBotBehavior: =>
+		for name, bot of @bots
+			try
+				bot.reload()
+			catch e
+				console.error("`#{name}` blew up while reloading.  Error: #{e}".red)
 
 	startPendingMessagePoller: ->
 		x = =>

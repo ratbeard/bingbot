@@ -1,6 +1,6 @@
 module.exports = ($twilio, $contacts) ->
 	error = (message, callback) ->
-		console.error("ERROR", message)
+		console.error("ERROR: #{message}".red)
 		callback?(message)
 
 	return {

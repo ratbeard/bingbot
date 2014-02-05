@@ -1,5 +1,10 @@
+config      = {
+  user: 'scorpio'
+  password: 'hotmilf69'
+}
 irc         = require 'irc'
-nano        = require 'nano'
+nano        = require('nano')("http://#{config.user}:#{config.password}@scorpio.cujo.jp:5984/scorpio")
+uuid        = require 'node-uuid'
 pusher      = require 'pusher'
 
 
@@ -20,9 +25,6 @@ class Scorpio
 
     # init the new scorpio!
     @_init()
-
-  clearScores: =>
-    console.log 'test'
 
 
   addUser: (user, value, reason) =>
@@ -62,8 +64,9 @@ class Scorpio
     userReason = null
     newScore = null
 
-  addScore: (user, value, reason) =>
+  addScore: (user, from, value, reason) =>
     userData = user
+    id = uuid.v1()
     console.log "ADDING SCORE FOR #{user}"
 
     unless user.indexOf("http://") is -1
@@ -77,19 +80,123 @@ class Scorpio
       console.log user
 
     # Get the Name of the user against the db
+    nano.insert({
+      awardedBy: from || null
+      points: value
+      subject: user
+      reason: reason || []
+    }, id, (err, body, header) =>
+      if (err)
+        console.log('[nano.insert] ', err.message)
+        return
+    )
 
-  findScores: (from, to, order) =>
+  checkCallback: (cb) =>
+    if typeof cb is "function"
+      return true
+    else
+      return false
+
+  findScores: (from, to, order, cb) =>
     if order is 'ascending'
       orderBy = -1
     else
       orderBy = 1
 
+    nano.view('scorpio', "get-score-by-key?group=true", (err, body) =>
+      pointsArray = []
+
+    )
+
+  getRandomItemFromArray: (arr, num) =>
+    result = new Array(num)
+    len = arr.length
+    taken = new Array(len)
+
+    console.log 'a', num, len
+    if (num > len)
+      num = len
+      result = new Array(num)
+      len = arr.length
+      taken = new Array(len)
+      
+    while (num--)
+      x = Math.floor(Math.random() * len)
+      result[num] = arr[(if x of taken then taken[x] else x)]
+      taken[x] = --len
+
+    return result
+
+  getScore: (user, reasonLimit, cb) =>
+    msg = ""
+
+    nano.view('scorpio', "get-score-by-key?group=true", {keys: [user]},(err, body) =>
+      if (!err)
+        if (body.rows && body.rows.length > 0)
+          body.rows.forEach( (doc) =>
+            points = doc.value.points
+            msg = "#{user} has #{points} points"
+
+            reasonArray = []
+            reasonObject = {}
+
+            ## if we have a reason we should get the reasons form the body.
+            if reasonLimit && doc.value.reasons.length
+              
+              ## lets get all the reasons in a decent variable
+              subjectReasons = doc.value.reasons
+
+              ## need to get a random reason if its random
+              if reasonLimit is "random"
+                subjectReasonItem = subjectReasons[@_randomInt(0, subjectReasons.length)]
+
+                ## build the reasonObject so we can parse it into a string
+                reasonObject.awardedBy = subjectReasonItem.awardedBy || null
+                reasonObject.points = subjectReasonItem.points || 0
+                reasonObject.comment = subjectReasonItem.reason || null
+                reasonObject.verb = if (reasonObject.points >= 0) then "awarded" else "negated"
+
+                reasonString = "Was #{reasonObject.verb} #{reasonObject.points} from #{reasonObject.awardedBy} #{reasonObject.comment}"
+
+                ## Redefine the message
+                msg = "#{user} has #{points} points. \n #{reasonString}"
+
+              else
+                for subjectReasonItem, i in subjectReasons
+                  ## build the reasonObject so we can parse it into a string
+                  reasonObject.awardedBy = subjectReasonItem.awardedBy || null
+                  reasonObject.points = subjectReasonItem.points || 0
+                  reasonObject.comment = subjectReasonItem.reason || null
+                  reasonString = "#{reasonObject.points} point from #{reasonObject.awardedBy} #{reasonObject.comment}"
+                  
+                  reasonArray.push(reasonString)
+
+                finalReasonArray = @getRandomItemFromArray(reasonArray, reasonLimit)
+
+                msg = "#{user} has #{points} points. \n #{finalReasonArray.join(', ')}"
+
+            if @checkCallback(cb)
+              cb(msg)
+          )
+        else
+          msg = "No points found for #{user}"
+          cb(msg)
+    )
+
 
   sayScoreWithReasons: (from, to, user, limit) =>
-    console.log ""
+    @getScore(user, limit, (msg) =>
+      console.log msg
+      @bot.say(to, msg)
+    )
+
 
   sayScore: (from, to, user) =>
-    console.log ""
+    @getScore(user, null, (msg) =>
+      console.log msg
+      @bot.say(to, msg)
+    )
+    
 
   _checkLimit: (limitBy) =>
     ## We don't want to flood the chat with a bunch of scores
@@ -126,7 +233,6 @@ class Scorpio
 
       if order is 'ascending' then orderBy = -1 else orderBy = 1
 
-
     else if limit
       limitBy = parseInt(limit)
 
@@ -139,7 +245,7 @@ class Scorpio
   _handleError: (message) =>
     # quality error handling 
     # +1 darkcypher_bit (aka. ratfuk, encrypted_fractal, COMPUTER_HOBBY)
-    console.log "fuk #{message}"
+    throw new Error "fuk #{message}"
 
   _connectBot: =>
     @bot = new irc.Client('irc.freenode.net', "#{@botName}",
@@ -166,7 +272,6 @@ class Scorpio
     # Listen to new messages for addings and removing points 
     @bot.addListener 'message', (from, to, message) =>
       #console.log('%s => %s: %s', from, to, message)
-      @clearScores()
 
       if match = message.match(/([+-]\d+)\s+(\S+)\s+(for(.*))/)
         [_, score, user, reason] = match
@@ -179,7 +284,7 @@ class Scorpio
         ## handle mr_lucs failures as a #developer
         if @_handleBingbot(from) == 'derpo' then return false
 
-        @addScore(@_handleBingbot(user), score, reason_result)
+        @addScore(@_handleBingbot(user), from, score, reason_result)
 
       else if match = message.match(/([+-]\d+)\s+(\S+)/)
         [_, score, user] = match
@@ -204,13 +309,10 @@ class Scorpio
         console.log 'RANDOMIZE REASON'
         limit = 'random'
         user = match[1]
-
         @sayScoreWithReasons(from, to, @_handleBingbot(user), limit)
         
       else if match = message.match /^score (\S+)/
-
         user = match[1]
-        
         @sayScore(from, to, @_handleBingbot(user))
       
       else if match = message.match /^whats the score (\S+) (\d+) (\S+)/
@@ -265,11 +367,27 @@ class Scorpio
     })
 
   _connectDb: =>
+    #nano.auth(u, pw, (err, body, headers) =>
+      #if (err)
+        #console.log u, pw, err, body, headers
+        #@_handleError(err)
+
+      #if (headers and headers['set-cookie'])
+        #cookie[user] = headers['set-cookie']
+
+      #@_connectBot()
+    #)
     @_connectBot()
+    
 
   _init: =>
     @_connectDb()
     @_initPusher()
+
+  _randomInt: (low,high) =>
+    return low + Math.floor(Math.random() * (high - low))
+    
+    
 
 bot = new Scorpio(
   bot_name: 'scorpio',
