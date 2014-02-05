@@ -1,4 +1,5 @@
 function(key, values, rereduce) {
+  var reason = [];
   var result = {
     points: 0,
     reasons: []};
@@ -6,16 +7,18 @@ function(key, values, rereduce) {
     for(i=0; i < values.length; i++) {
       currValue = values[i];
       result.points += currValue.points;
-      reason = currValue.reason || null;
       from = currValue.awardedBy || null;
 
-      if (reason && from) {
+      // if we have reasons we need to loop through them
+      // and pass it into a reasons object
+      if (currValue.reason && from) {
         var reasonObj = {
           points: currValue.points,
           awardedBy: from,
-          reason: reason };
+          reason: currValue.reason
+        };
 
-          result.reasons.push(reasonObj);
+        result.reasons.push(reasonObj);
       }
 
     }
