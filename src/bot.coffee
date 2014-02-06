@@ -14,13 +14,12 @@ clearRequireCache = ->
 module.exports =
 class Bot
 	constructor: (@name, @ircConfig) ->
-		@connection = null
+		@connection = new Connection(@name, @ircConfig)
 		@behavior = null
 
 	connect: () ->
 		@reload()
-		@connection = new Connection(@name)
-		@connection.connect(@ircConfig)
+		@connection.connect()
 
 	disconnect: ->
 		@connection.disconnect()
@@ -34,7 +33,7 @@ class Bot
 
 	load: ->
 		behaviorFn = require("./bots/#{@name}/bot.coffee")
-		@behavior = injector.inject(behaviorFn, {botName: => @name})
+		@behavior = injector.bot2(behaviorFn, @)
 
 	onMessage: (messageText) ->
 		try

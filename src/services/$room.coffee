@@ -4,15 +4,17 @@ module.exports = ($connection) ->
 	names = []
 	onNames =  (newNames) ->
 		console.log 'got names!', newNames
-
-	requestNames = ->
-		$connection.send("names")
 		for username in newUsers
 			for callback in onUserJoinCallbacks
 				callback(username)
 
-	$connection.addListener("names", onNames)
-	setInterval(requestNames, 1000)
+	requestNames = ->
+		#$connection.send("names")
+
+	#$connection.on("names", onNames)
+
+	# TODO wait till connected...
+	setInterval(requestNames, 10000)
 
 	userJoinCallbacks = []
 

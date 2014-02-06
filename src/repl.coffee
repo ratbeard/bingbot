@@ -20,7 +20,7 @@ class Session
 		@bots = {}
 		@repl = null
 		@config = @readConfig()
-		@masterbot = new Connection("masterbot")
+		@masterbot = new Connection("masterbot", @config)
 
 	start: ->
 		console.log "ヽ༼ຈل͜ຈ༽ﾉ Bingbot!"

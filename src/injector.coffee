@@ -28,10 +28,21 @@ injector = {
 			buildFn = context[name] || services.get(name, context)
 			# TODO - handle circular dependencies
 			@inject(buildFn, context)
-		fn.apply(null, instantiatedServices)
+		new fn(instantiatedServices...)
+
+	bot2: (builder, bot) ->
+		context =
+			botName: -> bot.name
+			$connection: -> bot.connection
+		@inject(builder, context)
 
 	bot: (botName) ->
-		context = {botName: -> botName}
+		context =
+			botName: ->
+				botName
+			$connection: ->
+				console.log 'INJECTING $CONNECTION!!'
+				5
 		behaviorFn = require("./bots/#{botName}/bot.coffee")
 		@inject(behaviorFn, context)
 }

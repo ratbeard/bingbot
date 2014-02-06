@@ -2,10 +2,10 @@ irc = require('irc')
 
 module.exports =
 class Connection
-	constructor: (@name) ->
+	constructor: (@name, @ircConfig) ->
 
-	connect: (ircConfig) ->
-		{server, channel} = ircConfig
+	connect: () ->
+		{server, channel} = @ircConfig
 		throw "bad ircConfig: #{ircConfig}" unless server? && channel?
 		channel = "#" + channel unless channel[0] == '#'
 		@server = server
@@ -14,20 +14,23 @@ class Connection
 			debug: true
 			channels: [@channel]
 		)
-		@irc.addListener("error", (error) =>
-			@onError(error)
-		)
-		@irc.addListener("message", (a,b,c) =>
-			@onMessage(a,b,c)
-		)
+		@irc.connect()
+		@on("error", @onError)
+		@on("message", @onMessage)
+
+	on: (eventName, callback) ->
+		@irc.addListener(eventName, callback)
+	
+	send: (messageBody) ->
+		@irc.send(messageBody)
 
 	disconnect: ->
 		@irc.disconnect()
 
-	onMessage: (user, room, said) ->
+	onMessage: (user, room, said) =>
 		#console.log "#{user}:'#{message}'"
 
-	onError: (error) ->
+	onError: (error) =>
 		console.error "fuk:", error
 
 	say: (messageText) ->
