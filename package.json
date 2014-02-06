@@ -4,7 +4,7 @@
   "description": "ERROR: No README.md file found!",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine-node --autotest --coffee --watch=src"
   },
   "repository": "",
   "author": "",
@@ -24,6 +24,5 @@
     "q": "~1.0.0"
   },
   "devDependencies": {
-    "nodemon": "~1.0.8"
   }
 }
