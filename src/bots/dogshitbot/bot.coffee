@@ -1,14 +1,5 @@
-BotBehavior = require('../../bot-behavior')
+module.exports = (command, say) ->
+	command "hello", ->
+		say "hi"
 
-module.exports =
-class Dogshitbot extends BotBehavior
-	@use 'random'
-
-	@match(/zup/, (message) ->
-		messageText = @random(["hi", ":[", "ok"])
-		@say(messageText)
-	)
-	@match(/cool/, (message) ->
-		@say "HELL YEA!!!!!!"
-	)
 
