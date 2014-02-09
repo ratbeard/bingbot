@@ -1,5 +1,5 @@
-module.exports = (matcherBuilder, matcherAcceptor) ->
-	return (matchingExpression) ->
-		matcherAcceptor(new matcherBuilder(matchingExpression))
+module.exports = (Matcher, behavior) ->
+	return (matchingExpression, handler) ->
+		behavior.matchers.push(new Matcher(matchingExpression, handler))
 
 

@@ -2,7 +2,8 @@ escapeRegex = (string) ->
   return new RegExp(string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"))
 
 module.exports = class Matcher
-	constructor: (matchExpression) ->
+	@inject = false
+	constructor: (matchExpression, @handler) ->
 		@matchRegex =
 			if typeof matchExpression == 'string'
 				escapeRegex(matchExpression)
