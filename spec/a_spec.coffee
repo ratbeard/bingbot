@@ -38,6 +38,7 @@ class Behavior
 
 #
 # Low level functional tests
+#
 describe "inject", ->
 	describe "inject(builder, locals)", ->
 		it "builder is given objects from `locals`, based on its function argument names", ->
@@ -146,8 +147,15 @@ describe "declaring a bot", ->
 	it "injects the correct api in to the behavior", ->
 
 
+#
+# Low level services
+#
 describe "services", ->
 	describe "random", ->
-		describe "flip()", ->
-		describe "roll()", ->
+		it "werks", ->
+			random = inject(require('../src/services/random'), {})
+			x = random(3, 4)
+			# hmm is this right?
+			expect(x).toBeLessThan(3.1)
+			expect(x).toBeGreaterThan(2.9)
 
