@@ -1,41 +1,11 @@
-_ = require('underscore')
 inject = require('../lib/inject')
 command = require('../lib/command')
 Matcher = require('../lib/matcher')
+{Bot, Connection, Behavior, MessageQueue, ActiveBots} = require('../lib/core')
 
 #
 # Implementations
 #
-ActiveBots = ->
-	return @instance if @instance
-	@bots = []
-	@instance = @
-
-MessageQueue = inject((ActiveBots) ->
-	return {outgoing: []}
-, {ActiveBots})
-MessageQueue.singleton = true
-
-say = inject((MessageQueue) ->
-	return (body) ->
-		#console.log 'saying!!!!!', body
-		MessageQueue.outgoing.push(body)
-, {MessageQueue})
-say.inject = false
-
-#
-behaviorServices = {command, say, Matcher}
-class Behavior
-	constructor: (builder, locals) ->
-		@matchers = []
-		locals = _.extend({}, behaviorServices, {behavior: @}, locals)
-		return inject(builder, locals)
-
-	onMessage: (message) ->
-		for matcher in @matchers
-			if matcher.doesMatch(message.body)
-				matcher.handler()
-
 #
 # Low level functional tests
 #
@@ -45,7 +15,7 @@ describe "inject", ->
 			locals = {a: 'a', b: 'b', c: 'c'}
 			builder = (b, a) ->
 				expect(a).toEqual('a')
-				#expect(b).toEqual('b')
+				expect(b).toEqual('b')
 			inject(builder, locals)
 
 	describe "inject.parseArgumentNames(fn)", ->
@@ -119,6 +89,25 @@ describe "Behavior", ->
 		expect(MessageQueue.outgoing.length).toBe(2)
 		expect(MessageQueue.outgoing).toEqual(["hi", "hi"])
 
+describe "Connection", ->
+	it "", ->
+
+describe "connecting a Bot to the chatroom", ->
+	registry = {MessageQueue}
+	greetBehavior = new Behavior((command, say) ->
+		command "hello", -> say("hi")
+	, registry)
+
+
+	it "requires a name, connection, and behavior builder", ->
+		connection = createSpyObj('connection', ['connect'])
+		bot = new Bot('greeter', connection, greetBehavior)
+		bot.connect()
+		expect(connection.connect).toHaveBeenCalled()
+	
+
+
+
 
 describe "MessageQueue", ->
 	it "is a singleton", ->
@@ -127,9 +116,6 @@ describe "MessageQueue", ->
 	it "takes outgoing messages from behaviors and sends them through the bots connection to the chatroom", ->
 	it "can apply a filter to the body of an incomming message", ->
 
-
-describe "Connection", ->
-	it "", ->
 
 
 describe "Bot", ->
