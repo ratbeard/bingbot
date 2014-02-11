@@ -5,7 +5,7 @@ inject = (builder, locals={}) ->
 	#console.error('INJECT', builder.toString(), locals)
 	dependencyNames = inject.parseArgumentNames(builder)
 	dependencies = for name in dependencyNames
-		dependency = locals[name] ? throw new Error("Could not find dependency: `#{name}` in `#{Object.keys(locals).join(', ')}`")
+		dependency = locals[name] ? throw new Error("Could not find dependency: `#{name}`.\n\tAvailable: `#{Object.keys(locals).join(', ')}`.\n\tFunction: #{builder}")
 		#console.log name, dependency, locals
 		if typeof dependency == 'function' && dependency.inject != false
 			shouldSave = dependency.singleton
@@ -14,7 +14,7 @@ inject = (builder, locals={}) ->
 				locals[name] = dependency
 
 		dependency
-	builder(dependencies...)
+	new builder(dependencies...)
 
 functionDeclarationRegex = /^\s*function[^(]*\(([^)]*)/
 blankRegex = /^\s*$/

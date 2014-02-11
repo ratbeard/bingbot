@@ -1,7 +1,4 @@
-inject = require('../lib/inject')
-command = require('../lib/command')
-Matcher = require('../lib/matcher')
-{Bot, Connection, Behavior, MessageQueue, ActiveBots, Session} = require('../lib/core')
+{inject, say, command, Bot, Connection, Matcher, Behavior, MessageQueue, ActiveBots, Session} = require('../lib/core')
 
 #
 # Implementations
@@ -74,10 +71,9 @@ describe "Matcher", ->
 # High level tests		
 #
 describe "Behavior", ->
-	registry = {MessageQueue}
-	greetBehavior = new Behavior((command, say) ->
+	builder = (command, say) ->
 		command "hello", -> say("hi")
-	, registry)
+	greetBehavior = Behavior.inject(builder)
 
 	it "registers messages to match against", ->
 		expect(greetBehavior.matchers.length).toBe(1)
@@ -89,8 +85,10 @@ describe "Behavior", ->
 		expect(MessageQueue.outgoing.length).toBe(2)
 		expect(MessageQueue.outgoing).toEqual(["hi", "hi"])
 
+
 describe "Connection", ->
 	it "asks for irc config", ->
+
 
 describe "connecting a Bot to the chatroom", ->
 	registry = {MessageQueue}
@@ -109,18 +107,21 @@ describe "connecting a Bot to the chatroom", ->
 
 
 describe "starting a session", ->
+	session = null
+	beforeEach ->
+		config = {read: -> {a:1}}
+		session = inject.core(Session, {config})
 
 	it "finds available bots in the bots/ dir", ->
-		session = new Session
-		botNames = session.availableBotNames()
+		botNames = session.botNames
 		expect(botNames).toContain('masterbot')
 		expect(botNames).toContain('kaleigh')
 
 	it "instantiates a Bot for each available bot", ->
-		session = new Session
+		expect(session.bots.masterbot.connect).toBeTruthy()
 
-
-	it "reads in config", ->
+	it "reads in config and merges it in to itself", ->
+		expect(session.config.a).toBe(1)
 
 	it "it tells masterbot to connect", ->
 
