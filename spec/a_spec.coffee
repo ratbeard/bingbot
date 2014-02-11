@@ -1,7 +1,7 @@
 inject = require('../lib/inject')
 command = require('../lib/command')
 Matcher = require('../lib/matcher')
-{Bot, Connection, Behavior, MessageQueue, ActiveBots} = require('../lib/core')
+{Bot, Connection, Behavior, MessageQueue, ActiveBots, Session} = require('../lib/core')
 
 #
 # Implementations
@@ -90,7 +90,7 @@ describe "Behavior", ->
 		expect(MessageQueue.outgoing).toEqual(["hi", "hi"])
 
 describe "Connection", ->
-	it "", ->
+	it "asks for irc config", ->
 
 describe "connecting a Bot to the chatroom", ->
 	registry = {MessageQueue}
@@ -99,7 +99,7 @@ describe "connecting a Bot to the chatroom", ->
 	, registry)
 
 
-	it "requires a name, connection, and behavior builder", ->
+	it "works", ->
 		connection = createSpyObj('connection', ['connect'])
 		bot = new Bot('greeter', connection, greetBehavior)
 		bot.connect()
@@ -107,6 +107,27 @@ describe "connecting a Bot to the chatroom", ->
 	
 
 
+
+describe "starting a session", ->
+
+	it "finds available bots in the bots/ dir", ->
+		session = new Session
+		botNames = session.availableBotNames()
+		expect(botNames).toContain('masterbot')
+		expect(botNames).toContain('kaleigh')
+
+	it "instantiates a Bot for each available bot", ->
+		session = new Session
+
+
+	it "reads in config", ->
+
+	it "it tells masterbot to connect", ->
+
+	it "it connects other startup bots", ->
+
+
+describe "when a message is said in the room", ->
 
 
 describe "MessageQueue", ->

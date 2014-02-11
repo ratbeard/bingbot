@@ -1,3 +1,5 @@
+fs = require('fs')
+path = require('path')
 _ = require('underscore')
 inject = require('./inject')
 command = require('./command')
@@ -54,5 +56,10 @@ class Behavior
 			if matcher.doesMatch(message.body)
 				matcher.handler()
 
-module.exports = {Bot, Connection, MessageQueue, ActiveBots, Behavior}
+class Session
+	constructor: ->
+	availableBotNames: ->
+		fs.readdirSync(path.join(__dirname, "bots"))
+
+module.exports = {Bot, Connection, MessageQueue, ActiveBots, Behavior, Session}
 
