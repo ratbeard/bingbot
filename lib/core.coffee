@@ -1,7 +1,8 @@
-colors = require('colors')
 fs = require('fs')
 path = require('path')
 _ = require('underscore')
+irc = require('irc')
+colors = require('colors')
 inject = require('./inject')
 Matcher = require('./Matcher')
 
@@ -11,21 +12,20 @@ class Bot
 	connect: ->
 		@connection.connect()
 
-irc = require('irc')
 class Connection
-	constructor: (config, botName) ->
+	constructor: (config, botName, IrcClientFactory) ->
 		{server, channel} = config.read()
-		console.log "config!!", server, channel
 		throw "bad ircConfig: #{config}" unless server? && channel?
 		channel = "#" + channel unless channel[0] == '#'
 		@server = server
 		@channel = channel
-		@name = botName
-		@irc = new irc.Client(@server, @name, debug: true, channels: [@channel])
+		@botName = botName
+		@irc = IrcClientFactory.build(@server, @channel, @botName)
 		@on 'error', (e) ->
 			console.error("fuk:".red, e)
 
 	connect: ->
+		console.log("#{@botName} is connecting")
 		@irc.connect()
 
 	on: (eventName, handler) ->
@@ -94,7 +94,8 @@ config = (env) ->
 	}
 
 class Session
-	constructor: (config) ->
+	constructor: (config, IrcClientFactory) ->
+		@locals = {session: @, IrcClientFactory}
 		@config = config.read()
 		@bots = {}
 		@botDir = path.join(__dirname, "bots")
@@ -111,12 +112,12 @@ class Session
 			{botName: name, apiBuilder, behaviorBuilder}
 
 	loadBots: ->
-		locals = {session: @}
-		messages = inject(MessageQueue, locals)
+		locals = _.extend({}, @locals)
+		@messages = inject(MessageQueue, locals)
 		for x in @readBots()
 			{botName, apiBuilder, behaviorBuilder} = x
 			locals.botName = botName
-			locals.messages = messages
+			locals.messages = @messages
 			locals.connection = inject.core(Connection, locals)
 			locals.behavior = new Behavior
 			inject.core(behaviorBuilder, locals)
@@ -125,7 +126,28 @@ class Session
 inject.core = (builder, locals) ->
 	inject(builder, _.extend({}, coreServices, locals))
 
+IrcClientFactory = ->
+	class IrcClient
+		constructor: (@server, @channel, @botName) ->
+			console.log 'making a client dog'
+			@irc = new irc.Client(@server, @botName, channels: [@channel], debug: true, autoConnect: false)
+
+		on: (eventName, callback) ->
+			@irc.on(eventName, callback)
+
+		connect: ->
+			@irc.connect()
+
+	return {
+		build: (args...) ->
+			console.log 'real building!'
+			new IrcClient(args...)
+	}
+
+		
+
 module.exports = coreServices = {
+	IrcClientFactory,
 	config,
 	env,
 	say,
@@ -141,5 +163,6 @@ module.exports = coreServices = {
 
 if require.main == module
 	console.log 'dece'
+	ircClient = new irc.Client("irc.freenode.net", "hat", debug: true, autoConnect: false, channels: ['#junkyard'])
 	session = inject.core(Session)
 	session.start()
