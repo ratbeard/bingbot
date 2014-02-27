@@ -20,23 +20,48 @@ class Connection
 		@server = server
 		@channel = channel
 		@botName = botName
-		@irc = IrcClientFactory.build(@server, @channel, @botName)
+		@client = IrcClientFactory.build(@server, @channel, @botName)
 		@on 'error', (e) ->
 			console.error("fuk:".red, e)
 
 	connect: ->
 		console.log("#{@botName} is connecting")
-		@irc.connect()
+		@client.connect()
 
 	on: (eventName, handler) ->
-		@irc.on(eventName, handler)
+		@client.on(eventName, handler)
 
 	say: (body) ->
-		if @irc
-			console.log("[#{@botName} (disconnected)] #{body}")
+		console.log "Connection.say()", body
+		if @client
+			@client.say(body)
 		else
+			console.log("[#{@botName} (disconnected)] #{body}")
+
+IrcClientFactory = ->
+	class IrcClient
+		constructor: (@server, @channel, @botName) ->
+			console.log 'making a client:', @server, @channel, @botName
+			@irc = new irc.Client(@server, @botName, channels: [@channel], debug: true, autoConnect: false)
+
+		on: (eventName, callback) ->
+			@irc.on(eventName, callback)
+
+		connect: ->
+			console.log "IrcClient.connect() #{@botName}"
+			@irc.connect()
+
+		say: (body) ->
+			console.log 'sayin', @channel, body
 			@irc.say(@channel, body)
 
+	return {
+		build: (args...) ->
+			console.log 'real building!'
+			new IrcClient(args...)
+	}
+
+		
 command = (Matcher, behavior) ->
 	return (matchingExpression, handler) ->
 		behavior.matchers.push(new Matcher(matchingExpression, handler))
@@ -46,7 +71,7 @@ MessageQueue = (session) ->
 	return {
 		addOutgoing: (message) ->
 			{body, from} = message
-			console.log "[#{from}]: #{body}"
+			console.log "MessageQueue.addOutgoing(): #{from}, #{body}"
 			bot = session.bots[from]
 			isConnected = true
 			if isConnected
@@ -107,7 +132,15 @@ class Session
 		@loadBots()
 
 	start: ->
+		@connectMasterbot()
+		@connectLaunchbots()
+	
+	connectMasterbot: ->
 		@bots.masterbot.connect()
+
+	connectLaunchbots: ->
+		for name in @config.launchBots ? []
+			@bots[name].connect()
 
 	readBots: ->
 		for name in @botNames
@@ -130,25 +163,6 @@ class Session
 inject.core = (builder, locals) ->
 	inject(builder, _.extend({}, coreServices, locals))
 
-IrcClientFactory = ->
-	class IrcClient
-		constructor: (@server, @channel, @botName) ->
-			console.log 'making a client:', @server, @channel, @botName
-			@irc = new irc.Client(@server, @botName, channels: [@channel], debug: true, autoConnect: false)
-
-		on: (eventName, callback) ->
-			@irc.on(eventName, callback)
-
-		connect: ->
-			@irc.connect()
-
-	return {
-		build: (args...) ->
-			console.log 'real building!'
-			new IrcClient(args...)
-	}
-
-		
 
 module.exports = coreServices = {
 	IrcClientFactory,
