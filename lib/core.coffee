@@ -32,7 +32,10 @@ class Connection
 		@irc.on(eventName, handler)
 
 	say: (body) ->
-		@irc.say(@channel, body)
+		if @irc
+			console.log("[#{@botName} (disconnected)] #{body}")
+		else
+			@irc.say(@channel, body)
 
 command = (Matcher, behavior) ->
 	return (matchingExpression, handler) ->
@@ -77,6 +80,7 @@ class Behavior
 env = () ->
 	homeDir: process.env.HOME
 	name: 'dev' #argv.env
+	name: 'local'
 
 config = (env) ->
 	return {
@@ -129,7 +133,7 @@ inject.core = (builder, locals) ->
 IrcClientFactory = ->
 	class IrcClient
 		constructor: (@server, @channel, @botName) ->
-			console.log 'making a client dog'
+			console.log 'making a client:', @server, @channel, @botName
 			@irc = new irc.Client(@server, @botName, channels: [@channel], debug: true, autoConnect: false)
 
 		on: (eventName, callback) ->
@@ -163,6 +167,7 @@ module.exports = coreServices = {
 
 if require.main == module
 	console.log 'dece'
-	ircClient = new irc.Client("irc.freenode.net", "hat", debug: true, autoConnect: false, channels: ['#junkyard'])
+	#ircClient = new irc.Client("irc.freenode.net", "hat", debug: true, autoConnect: false) 
+	#ircClient = new irc.Client("localhost.net", "junkyard", debug: true, autoConnect: false)
 	session = inject.core(Session)
 	session.start()
