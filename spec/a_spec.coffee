@@ -167,9 +167,12 @@ describe "services", ->
 #
 # TDD KALEIGH
 #
+
+createTestSession = () ->
+
 describe "kaleigh", ->
 	it "responds to 'hello'", ->
-		config = {read: -> {}}
+		config = {}
 
 		responses = []
 		FakeIrcClientFactory = ->
@@ -188,7 +191,6 @@ describe "kaleigh", ->
 			}
 
 		# TODO - tell kaleigh to launch
-		# mock say
 		session = inject.core(Session, {config, IrcClientFactory: FakeIrcClientFactory})
 
 		sayInChatroom = (body) ->

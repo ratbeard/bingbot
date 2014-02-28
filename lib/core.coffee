@@ -14,7 +14,7 @@ class Bot
 
 class Connection
 	constructor: (config, botName, IrcClientFactory) ->
-		{server, channel} = config.read()
+		{server, channel} = config
 		throw "bad ircConfig: #{config}" unless server? && channel?
 		channel = "#" + channel unless channel[0] == '#'
 		@server = server
@@ -107,25 +107,25 @@ env = () ->
 	name: 'dev' #argv.env
 	name: 'local'
 
+# Service which reads in config from the users home dir
+# TODO create file if no exists
 config = (env) ->
-	return {
-		read: ->
-			configDir = path.join(env.homeDir, ".bingbot")
-			configFile = path.join(configDir, "config.json")
-			jsonString = fs.readFileSync(configFile)
-			json = JSON.parse(jsonString)
-			environmentConfig = json[env.name]
-			if env.name && !environmentConfig
-				console.error("""Hey I didn't see any config for '#{env.name}' in #{configFile}.
-												 Only saw: #{Object.keys(json).join(' ')}""")
-				throw "TRY BETTER NEXT TIME"
-			_.extend(json.default, environmentConfig)
-	}
+	configDir = path.join(env.homeDir, ".bingbot")
+	configFile = path.join(configDir, "config.json")
+	jsonString = fs.readFileSync(configFile)
+	json = JSON.parse(jsonString)
+	environmentConfig = json[env.name]
+	if env.name && !environmentConfig
+		console.error("""Hey I didn't see any config for '#{env.name}' in #{configFile}.
+										 Only saw: #{Object.keys(json).join(' ')}""")
+		throw "TRY BETTER NEXT TIME"
+	_.extend(json.default, environmentConfig)
+
 
 class Session
 	constructor: (config, IrcClientFactory) ->
 		@locals = {session: @, IrcClientFactory}
-		@config = config.read()
+		@config = config
 		@bots = {}
 		@botDir = path.join(__dirname, "bots")
 		@botNames = fs.readdirSync(@botDir)
