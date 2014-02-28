@@ -1,7 +1,7 @@
 module.exports = (command, say) ->
 
 	command "hi", ->
-		say "it is all good."
+		say "hello"
 
 	command /txt ([^ ]+) (.+)/, (match) ->
 		usernameOrPhoneNumber = match[1]

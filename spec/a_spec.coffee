@@ -170,6 +170,8 @@ describe "services", ->
 describe "kaleigh", ->
 	it "responds to 'hello'", ->
 		config = {read: -> {}}
+
+		responses = []
 		FakeIrcClientFactory = ->
 			class FakeIrcClient
 				constructor: (@server, @channel, @botName) ->
@@ -177,6 +179,8 @@ describe "kaleigh", ->
 					console.log "FakeClient", "registered listener for #{eventName}"
 				connect: ->
 					console.log "FakeClient", "connect!"
+				say: (a) ->
+					responses.push(a)
 
 			return {
 				build: (args...) ->
@@ -186,11 +190,12 @@ describe "kaleigh", ->
 		# TODO - tell kaleigh to launch
 		# mock say
 		session = inject.core(Session, {config, IrcClientFactory: FakeIrcClientFactory})
-		someoneSays = (body) ->
-			session.messages.addIncoming({from: 'someone', body})
 
-		botSaid = (body) ->
-		
-		someoneSays "kaleigh: hello"
-		expect(botSaid()).toBe("hi")
+		sayInChatroom = (body) ->
+			from = 'someone'
+			session.messages.addIncoming({from, body})
+
+		sayInChatroom "kaleigh: hi"
+		expect(responses.length).toBe(1)
+		expect(responses[0]).toBe("hello")
 
