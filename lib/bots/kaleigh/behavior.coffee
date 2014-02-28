@@ -6,9 +6,10 @@ module.exports = (command, say) ->
 	command /txt ([^ ]+) (.+)/, (match) ->
 		usernameOrPhoneNumber = match[1]
 		body = match[2]
-		$api.sendSms(usernameOrPhoneNumber, body, (err, message) ->
-			return bot.say "Error: #{err}" if err
-			bot.say "Message delivered :)"
-		)
+		console.log body, 'j'
+		#$api.sendSms(usernameOrPhoneNumber, body, (err, message) ->
+			#return bot.say "Error: #{err}" if err
+			#bot.say "Message delivered :)"
+		#)
 
 	

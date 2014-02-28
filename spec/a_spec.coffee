@@ -55,16 +55,16 @@ describe "inject", ->
 describe "Matcher", ->
 	describe "when given a string", ->
 		it "matches if the string is present", ->
-			expect(new Matcher("cry").doesMatch("go cry")).toBe(true)
-			expect(new Matcher("cry").doesMatch("big road")).toBe(false)
-			expect(new Matcher("cry").doesMatch("@crybaby shut up")).toBe(true)
-			expect(new Matcher("cry").doesMatch("@Crybaby shut up")).toBe(false)
+			expect(new Matcher("cry").doesMatch(body: "go cry")).toBe(true)
+			expect(new Matcher("cry").doesMatch(body: "big road")).toBe(false)
+			expect(new Matcher("cry").doesMatch(body: "@crybaby shut up")).toBe(true)
+			expect(new Matcher("cry").doesMatch(body: "@Crybaby shut up")).toBe(false)
 
 	describe "when given a regex", ->
 		it "matches if the regex matches", ->
-			expect(new Matcher(/cr?y/).doesMatch("go cry")).toBe(true)
-			expect(new Matcher(/cr?y/).doesMatch("go cyhi")).toBe(true)
-			expect(new Matcher(/cr?y/).doesMatch("go Cry chrys")).toBe(false)
+			expect(new Matcher(/cr?y/).doesMatch(body: "go cry")).toBe(true)
+			expect(new Matcher(/cr?y/).doesMatch(body: "go cyhi")).toBe(true)
+			expect(new Matcher(/cr?y/).doesMatch(body: "go Cry chrys")).toBe(false)
 
 
 #
@@ -204,10 +204,27 @@ createTestSession = () ->
 
 
 describe "kaleigh", ->
-	it "responds to 'hello'", ->
+	beforeEach ->
+
+	it "should responds to 'hi'", ->
 		# TODO - tell kaleigh to launch
 		session = createTestSession()
 		session.sayInChatroom("kaleigh: hi")
 		expect(session.responses().length).toBe(1)
 		expect(session.responses()[0]).toBe("hello")
+
+	describe "'txt' command", ->
+		it "matches a phone number", ->
+			kaleighBehavior = createTestSession().bots.kaleigh.behavior
+			expectMatch = (body, shouldMatch=true) ->
+				expect(kaleighBehavior.doesMatch({body})).toBe(shouldMatch)
+				
+			expectDoesntMatch = (body) ->
+				expectMatch(body, false)
+				
+			expectMatch "kaleigh: txt 1112223333 sup dog"
+			
+			#kaleighBehavior.onMessage({body})
+			#session = createTestSession()
+			#session.sayInChatroom(
 

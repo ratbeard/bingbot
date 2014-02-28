@@ -96,11 +96,22 @@ class Behavior
 	constructor: () ->
 		@matchers = []
 
-	onMessage: (message) ->
+	onMessage: (message, onMatch=@onMatch) ->
 		for matcher in @matchers
-			if matcher.doesMatch(message.body)
-				console.log 'it matched', matcher
-				matcher.handler()
+			console.log 'm?', message
+			if match = matcher.match(message)
+				onMatch(matcher, match)
+
+	onMatch: (matcher, match) ->
+		console.log 'onMatch', match
+		matcher.handler(match)
+
+	doesMatch: (message) ->
+		result = false
+		@onMessage(message, -> result = true)
+		result
+
+	
 
 env = () ->
 	homeDir: process.env.HOME
