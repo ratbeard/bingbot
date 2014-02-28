@@ -168,36 +168,46 @@ describe "services", ->
 # TDD KALEIGH
 #
 
+FakeIrcClientFactory = ->
+	class FakeIrcClient
+		constructor: (@server, @channel, @botName) ->
+			@responses = []
+
+		on: (eventName, callback) ->
+			console.log "FakeClient", "registered listener for #{eventName}"
+
+		connect: ->
+			console.log "FakeClient", "connect!"
+
+		say: (body) ->
+			@responses.push(body)
+
+	return {
+		build: (args...) ->
+			new FakeIrcClient(args...)
+	}
+
+
 createTestSession = () ->
+	defaults = {
+		config: {}
+		IrcClientFactory: FakeIrcClientFactory
+	}
+	session = inject.core(Session, defaults)
+	session.sayInChatroom = (body) ->
+		from = 'someone'
+		session.messages.addIncoming({from, body})
+	# TODO - wrong level of abstraction.  responses should go on a queue, not directly to connection?
+	session.responses = ->
+		session.bots.kaleigh.connection.client.responses
+	session
+
 
 describe "kaleigh", ->
 	it "responds to 'hello'", ->
-		config = {}
-
-		responses = []
-		FakeIrcClientFactory = ->
-			class FakeIrcClient
-				constructor: (@server, @channel, @botName) ->
-				on: (eventName, callback) ->
-					console.log "FakeClient", "registered listener for #{eventName}"
-				connect: ->
-					console.log "FakeClient", "connect!"
-				say: (a) ->
-					responses.push(a)
-
-			return {
-				build: (args...) ->
-					new FakeIrcClient(args...)
-			}
-
 		# TODO - tell kaleigh to launch
-		session = inject.core(Session, {config, IrcClientFactory: FakeIrcClientFactory})
-
-		sayInChatroom = (body) ->
-			from = 'someone'
-			session.messages.addIncoming({from, body})
-
-		sayInChatroom "kaleigh: hi"
-		expect(responses.length).toBe(1)
-		expect(responses[0]).toBe("hello")
+		session = createTestSession()
+		session.sayInChatroom("kaleigh: hi")
+		expect(session.responses().length).toBe(1)
+		expect(session.responses()[0]).toBe("hello")
 
