@@ -1,8 +1,4 @@
-module.exports = (twilio, contacts) ->
-	error = (message, callback) ->
-		console.error("ERROR: #{message}".red)
-		callback?(message)
-
+module.exports = (Q, twilio, contacts) ->
 	return {
 		# Converts a phone number string to the format twilio expects:
 		#
@@ -19,26 +15,20 @@ module.exports = (twilio, contacts) ->
 				else
 					null
 
-		# Returns a promise of the phone number
+		# Returns a promise resolving to a phone number
 		getPhoneNumber: (usernameOrPhoneNumber, callback) ->
-			phoneNumber = @normalizePhoneNumber(usernameOrPhoneNumber)
-			if phoneNumber
-				callback(null, phoneNumber)
-				return
+			if phoneNumber = @normalizePhoneNumber(usernameOrPhoneNumber)
+				return Q.resolve(phoneNumber)
 
 			username = usernameOrPhoneNumber
-			contacts.get(username, (user) ->
-				return error("Couldn't find user #{username}", callback) unless user
-				return error("No `phone` set for `#{username}`", callback) unless user.phone
-				callback(null, user.phone)
+			contacts.get(username).then((user) ->
+				user.phone ? throw Error("Contact `#{username}` didn't have a phone number")
 			)
 
-		sendText: (usernameOrPhoneNumber, body, callback) ->
-			@getPhoneNumber(usernameOrPhoneNumber, (err, phoneNumber) ->
-				return error(err, callback) if err
-				twilio.sendText(phoneNumber, body, (err, message) ->
-					callback?()
+		sendText: (usernameOrPhoneNumber, body) ->
+			@getPhoneNumber(usernameOrPhoneNumber)
+				.then((phoneNumber) ->
+					twilio.sendText(phoneNumber, body)
 				)
-			)
 	}
 

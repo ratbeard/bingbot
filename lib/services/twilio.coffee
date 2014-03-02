@@ -7,6 +7,6 @@ module.exports = (secrets) ->
 	client = twilio(sid, token)
 
 	return {
-		sendText: (to, body, callback) ->
-			client.sendSms({body, to, from}, callback)
+		sendText: (to, body) ->
+			client.sendSms({body, to, from})
 	}

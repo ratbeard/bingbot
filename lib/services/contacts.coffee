@@ -1,11 +1,11 @@
-module.exports = (secrets) ->
+module.exports = (Q, secrets) ->
 	contacts = secrets.get("contacts")
 	return {
-		get: (username, callback) ->
+		get: (username) ->
 			for contact in contacts
 				if contact.username == username
-					return callback(contact)
-			callback(null)
+					return Q.resolve(contact)
+			Q.reject("contact `#{username}` not found")
 	}
 
 
