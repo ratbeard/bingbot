@@ -103,7 +103,6 @@ class Behavior
 				onMatch(matcher, match)
 
 	onMatch: (matcher, match) ->
-		console.log 'onMatch', match
 		matcher.handler(match)
 
 	doesMatch: (message) ->
@@ -165,15 +164,17 @@ class Session
 		for x in @readBots()
 			{botName, apiBuilder, behaviorBuilder} = x
 			locals.botName = botName
+			# Build up connections, etc
 			locals.messages = @messages
 			locals.connection = inject.core(Connection, locals)
+			# Build api and behavior
+			locals.api = inject.core(apiBuilder, locals)
 			locals.behavior = new Behavior
 			inject.core(behaviorBuilder, locals)
 			@bots[botName] = inject(Bot, locals)
 
 inject.core = (builder, locals) ->
 	inject(builder, _.extend({}, coreServices, locals))
-
 
 module.exports = coreServices = {
 	IrcClientFactory,

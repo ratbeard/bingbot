@@ -148,6 +148,7 @@ describe "master connection", ->
 
 describe "declaring a bot", ->
 	it "requires a behavior and an api", ->
+
 	it "injects the correct api in to the behavior", ->
 
 
@@ -206,7 +207,7 @@ createTestSession = () ->
 describe "kaleigh", ->
 	beforeEach ->
 
-	it "should responds to 'hi'", ->
+	it "should respond to 'hi'", ->
 		# TODO - tell kaleigh to launch
 		session = createTestSession()
 		session.sayInChatroom("kaleigh: hi")
@@ -223,8 +224,7 @@ describe "kaleigh", ->
 				expectMatch(body, false)
 				
 			expectMatch "kaleigh: txt 1112223333 sup dog"
+			#expectDoesntMatch "kaleigh: txt 112223333 sup dog"
 			
-			#kaleighBehavior.onMessage({body})
-			#session = createTestSession()
-			#session.sayInChatroom(
+
 

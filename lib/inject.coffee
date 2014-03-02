@@ -3,6 +3,8 @@
 #
 inject = (builder, locals={}) ->
 	#console.error('INJECT', builder.toString(), locals)
+	if typeof builder != 'function'
+		throw Error("inject requires a function.  Was given: #{JSON.stringify(builder)}")
 	dependencyNames = inject.parseArgumentNames(builder)
 	dependencies = for name in dependencyNames
 		dependency = locals[name] ? throw new Error("Could not find dependency: `#{name}`.\n\tAvailable: `#{Object.keys(locals).join(', ')}`.\n\tFunction: #{builder}")

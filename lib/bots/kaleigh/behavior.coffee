@@ -1,4 +1,4 @@
-module.exports = (command, say) ->
+module.exports = (command, say, api) ->
 
 	command "hi", ->
 		say "hello"
@@ -6,7 +6,6 @@ module.exports = (command, say) ->
 	command /txt ([^ ]+) (.+)/, (match) ->
 		usernameOrPhoneNumber = match[1]
 		body = match[2]
-		console.log body, 'j'
 		#$api.sendSms(usernameOrPhoneNumber, body, (err, message) ->
 			#return bot.say "Error: #{err}" if err
 			#bot.say "Message delivered :)"
