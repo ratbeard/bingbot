@@ -15,7 +15,7 @@ class Bot
 class Connection
 	constructor: (config, botName, IrcClientFactory) ->
 		{server, channel} = config
-		throw "bad ircConfig: #{config}" unless server? && channel?
+		throw "bad ircConfig: #{JSON.stringify(config)}" unless server? && channel?
 		channel = "#" + channel unless channel[0] == '#'
 		@server = server
 		@channel = channel
@@ -192,9 +192,12 @@ module.exports = coreServices = {
 	inject
 }
 
-ss = ['twilio', 'contacts']
-for s in ss
-	coreServices[s] = require("./services/#{s}")
+servicesDir = "#{__dirname}/services"
+services = fs.readdirSync(servicesDir)
+services = services.map((f) -> f.split('.')[0])
+for service in services
+	console.log service
+	coreServices[service] = require("#{servicesDir}/#{service}")
 
 if require.main == module
 	console.log 'dece'

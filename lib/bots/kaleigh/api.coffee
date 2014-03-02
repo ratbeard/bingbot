@@ -19,6 +19,7 @@ module.exports = (twilio, contacts) ->
 				else
 					null
 
+		# Returns a promise of the phone number
 		getPhoneNumber: (usernameOrPhoneNumber, callback) ->
 			phoneNumber = @normalizePhoneNumber(usernameOrPhoneNumber)
 			if phoneNumber
@@ -35,18 +36,9 @@ module.exports = (twilio, contacts) ->
 		sendText: (usernameOrPhoneNumber, body, callback) ->
 			@getPhoneNumber(usernameOrPhoneNumber, (err, phoneNumber) ->
 				return error(err, callback) if err
-				twilio.sendSms(phoneNumber, body, (err, message) ->
+				twilio.sendText(phoneNumber, body, (err, message) ->
 					callback?()
 				)
 			)
 	}
-
-# ====
-if require.main == module
-	injector = require('../../injector')
-	api = injector.inject(module.exports, services)
-	body = "sup dog?"
-	to = "encryptd_fractal"
-	api.sendSms(to, body)
-
 

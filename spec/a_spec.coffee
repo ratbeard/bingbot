@@ -203,9 +203,9 @@ createTestSession = () ->
 		session.bots.kaleigh.connection.client.responses
 	session
 
-makeBotApi = (botName) ->
+makeBotApi = (botName, locals={}) ->
 	apiBuilder = require("../lib/bots/#{botName}/api")
-	api = inject.core(apiBuilder)
+	api = inject.core(apiBuilder, locals)
 
 describe "kaleigh", ->
 	describe "behavior", ->
@@ -240,5 +240,18 @@ describe "kaleigh", ->
 				it "returns null", ->
 					expect(api.normalizePhoneNumber("cuco")).toBe(null)
 					expect(api.normalizePhoneNumber(null)).toBe(null)
+
+		describe "sendText()", ->
+			twilio = {
+				sentTexts: []
+				sendSms: (phoneNumber, message, callback) ->
+					console.log 'sending!!!', phoneNumber, message
+					@sentTexts.push {phoneNumber, message}
+			}
+			api = makeBotApi("kaleigh", {twilio})
+			api.sendText("+12223334444", "wakeup slum dog", ->
+				dece
+			)
+			expect(twilio.sentTexts.length).toBe(1)
 
 
