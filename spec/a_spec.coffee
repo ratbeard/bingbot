@@ -226,7 +226,27 @@ describe "kaleigh", ->
 				expectMatch "kaleigh: txt cuco sup dog"
 	
 	describe "api", ->
-		api = makeBotApi("kaleigh")
+		twilio = null
+		api = null
+		sentTexts = null
+		beforeEach ->
+			sentTexts = []
+			fakeServices = {
+				twilio:
+					sendText: (to, body, callback) ->
+						sentTexts.push {to, body}
+				contacts:
+					get: (username, callback) ->
+						if username == 'user-with-phone'
+							callback({phone: '9529133000'})
+						else if username == 'user-without-phone'
+							callback({})
+						else
+							callback()
+
+			}
+			api = makeBotApi("kaleigh", fakeServices)
+			
 
 		describe "normalizePhoneNumber()", ->
 			describe "given a full twilio expected number", ->
@@ -238,20 +258,26 @@ describe "kaleigh", ->
 					expect(api.normalizePhoneNumber("222-333-4444")).toBe("+12223334444")
 			describe "given something thats not a phone number", ->
 				it "returns null", ->
-					expect(api.normalizePhoneNumber("cuco")).toBe(null)
+					expect(api.normalizePhoneNumber("rats123")).toBe(null)
 					expect(api.normalizePhoneNumber(null)).toBe(null)
 
 		describe "sendText()", ->
-			twilio = {
-				sentTexts: []
-				sendSms: (phoneNumber, message, callback) ->
-					console.log 'sending!!!', phoneNumber, message
-					@sentTexts.push {phoneNumber, message}
-			}
-			api = makeBotApi("kaleigh", {twilio})
-			api.sendText("+12223334444", "wakeup slum dog", ->
-				dece
-			)
-			expect(twilio.sentTexts.length).toBe(1)
+			describe "given a phone number", ->
+				it "sends a text", ->
+					api.sendText("+12223334444", "wakeup slum dog")
+					expect(sentTexts.length).toBe(1)
 
+			describe "given a name in contacts with a phone", ->
+				it "sends a text", ->
+					api.sendText("user-with-phone", "wakeup slum dog")
+					expect(sentTexts.length).toBe(1)
 
+			describe "given a name in contacts without a phone", ->
+				it "does not send a text", ->
+					api.sendText("user-without-phone", "wakeup slum dog")
+					expect(sentTexts.length).toBe(0)
+
+			describe "given a name not in contacts", ->
+				it "does not send a text", ->
+					api.sendText("ffa", "wakeup slum dog")
+					expect(sentTexts.length).toBe(0)
