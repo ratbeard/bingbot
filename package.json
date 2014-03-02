@@ -4,7 +4,7 @@
   "description": "ERROR: No README.md file found!",
   "main": "index.js",
   "scripts": {
-		"test": "jasmine-node spec --autotest --coffee --watch lib"
+    "test": "jasmine-node spec --autotest --coffee --watch lib"
   },
   "repository": "",
   "author": "",
@@ -21,7 +21,9 @@
     "optimist": "~0.6.0",
     "twilio": "~1.5.0",
     "colors": "~0.6.2",
-    "q": "~1.0.0"
+    "q": "~1.0.0",
+    "glob": "~3.2.9",
+    "gulp": "~3.5.2"
   },
   "devDependencies": {
     "jasmine-node": "~1.13.1"

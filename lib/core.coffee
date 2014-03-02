@@ -173,23 +173,28 @@ class Session
 			inject.core(behaviorBuilder, locals)
 			@bots[botName] = inject(Bot, locals)
 
+
 inject.core = (builder, locals) ->
 	inject(builder, _.extend({}, coreServices, locals))
 
 module.exports = coreServices = {
-	IrcClientFactory,
-	config,
-	env,
-	say,
-	command,
-	Bot,
-	Connection,
-	MessageQueue,
-	Behavior,
-	Session,
-	Matcher,
+	IrcClientFactory
+	config
+	env
+	say
+	command
+	Bot
+	Connection
+	MessageQueue
+	Behavior
+	Session
+	Matcher
 	inject
 }
+
+ss = ['twilio', 'contacts']
+for s in ss
+	coreServices[s] = require("./services/#{s}")
 
 if require.main == module
 	console.log 'dece'

@@ -203,28 +203,42 @@ createTestSession = () ->
 		session.bots.kaleigh.connection.client.responses
 	session
 
+makeBotApi = (botName) ->
+	apiBuilder = require("../lib/bots/#{botName}/api")
+	api = inject.core(apiBuilder)
 
 describe "kaleigh", ->
-	beforeEach ->
+	describe "behavior", ->
+		it "responds to 'hi'", ->
+			# TODO - tell kaleigh to launch
+			session = createTestSession()
+			session.sayInChatroom("kaleigh: hi")
+			expect(session.responses().length).toBe(1)
+			expect(session.responses()[0]).toBe("hello")
 
-	it "should respond to 'hi'", ->
-		# TODO - tell kaleigh to launch
-		session = createTestSession()
-		session.sayInChatroom("kaleigh: hi")
-		expect(session.responses().length).toBe(1)
-		expect(session.responses()[0]).toBe("hello")
+		describe "'txt' command", ->
+			it "matches a phone number", ->
+				kaleighBehavior = createTestSession().bots.kaleigh.behavior
+				expectMatch = (body, shouldMatch=true) ->
+					expect(kaleighBehavior.doesMatch({body})).toBe(shouldMatch)
 
-	describe "'txt' command", ->
-		it "matches a phone number", ->
-			kaleighBehavior = createTestSession().bots.kaleigh.behavior
-			expectMatch = (body, shouldMatch=true) ->
-				expect(kaleighBehavior.doesMatch({body})).toBe(shouldMatch)
-				
-			expectDoesntMatch = (body) ->
-				expectMatch(body, false)
-				
-			expectMatch "kaleigh: txt 1112223333 sup dog"
-			#expectDoesntMatch "kaleigh: txt 112223333 sup dog"
-			
+				expectMatch "kaleigh: txt 1112223333 sup dog"
+				expectMatch "kaleigh: txt cuco sup dog"
+	
+	describe "api", ->
+		api = makeBotApi("kaleigh")
+
+		describe "normalizePhoneNumber()", ->
+			describe "given a full twilio expected number", ->
+				it "returns it", ->
+					expect(api.normalizePhoneNumber("+12223334444")).toBe("+12223334444")
+			describe "given a shorthand number", ->
+				it "converts it to a full number", ->
+					expect(api.normalizePhoneNumber("2223334444")).toBe("+12223334444")
+					expect(api.normalizePhoneNumber("222-333-4444")).toBe("+12223334444")
+			describe "given something thats not a phone number", ->
+				it "returns null", ->
+					expect(api.normalizePhoneNumber("cuco")).toBe(null)
+					expect(api.normalizePhoneNumber(null)).toBe(null)
 
 
