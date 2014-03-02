@@ -4,13 +4,10 @@ module.exports = (command, say, api) ->
 		say "hello"
 
 	command /txt ([^ ]+) (.+)/, (match) ->
-		usernameOrPhoneNumber = match[1]
-		body = match[2]
-		sayDelivered = (textMessage)->
-			say "Message delivered :)"
+		[usernameOrPhoneNumber, body] = match
 
 		api.sendText(usernameOrPhoneNumber, body)
-			.then(sayDelivered)
+			.then(-> say 'Message delivered :)')
 			.catch((error) -> say "Error: #{error}")
 
 	

@@ -15,9 +15,11 @@ module.exports = class Matcher
 
 	match: (message) ->
 		string = message.body
-		match = null
 		if @prefix # pop off prefix
 			return unless @prefix.test(string)
 			string = string.replace(@prefix, '')
-		@pattern.exec(string)
+		match = @pattern.exec(string)
+		# Shift captures to index 0
+		match?.shift()
+		match
 
